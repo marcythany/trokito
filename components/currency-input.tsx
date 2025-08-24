@@ -1,81 +1,121 @@
-"use client"
+'use client';
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { realsToCents, centsToReals } from "@/lib/currency-utils"
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { centsToReals, realsToCents } from '@/lib/currency-utils';
+import { useCallback, useEffect, useState, useTransition } from 'react';
 
 interface CurrencyInputProps {
-  label: string
-  value: number
-  onChange: (value: number) => void
-  placeholder?: string
-  disabled?: boolean
-  className?: string
+	label: string;
+	value: number;
+	onChange: (value: number) => void;
+	placeholder?: string;
+	disabled?: boolean;
+	className?: string;
+	name?: string;
+	required?: boolean;
 }
 
-export function CurrencyInput({ label, value, onChange, placeholder, disabled, className }: CurrencyInputProps) {
-  const [displayValue, setDisplayValue] = useState("")
-  const [isFocused, setIsFocused] = useState(false)
+export function CurrencyInput({
+	label,
+	value,
+	onChange,
+	placeholder,
+	disabled,
+	className,
+	name,
+	required = false,
+}: CurrencyInputProps) {
+	const [displayValue, setDisplayValue] = useState('');
+	const [isFocused, setIsFocused] = useState(false);
+	const [, startTransition] = useTransition(); // Removemos isPending não utilizado
 
-  useEffect(() => {
-    if (!isFocused) {
-      setDisplayValue(value > 0 ? centsToReals(realsToCents(value)).toFixed(2) : "")
-    }
-  }, [value, isFocused])
+	// Função de formatação otimizada com useCallback
+	const formatCurrencyValue = useCallback((value: number): string => {
+		if (value <= 0) return '';
+		return centsToReals(realsToCents(value)).toFixed(2);
+	}, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value
-    setDisplayValue(inputValue)
+	// Efeito para atualizar o valor de exibição quando não está em foco
+	useEffect(() => {
+		if (!isFocused) {
+			setDisplayValue(formatCurrencyValue(value));
+		}
+	}, [value, isFocused, formatCurrencyValue]);
 
-    // Remove caracteres não numéricos exceto vírgula e ponto
-    const cleanValue = inputValue.replace(/[^\d.,]/g, "")
+	// Handler de mudança otimizado
+	const handleInputChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const inputValue = e.target.value;
+			setDisplayValue(inputValue);
 
-    // Converte vírgula para ponto
-    const normalizedValue = cleanValue.replace(",", ".")
+			// Processamento em transição para não bloquear a UI
+			startTransition(() => {
+				// Remove caracteres não numéricos exceto vírgula e ponto
+				const cleanValue = inputValue.replace(/[^\d.,]/g, '');
 
-    // Converte para número
-    const numericValue = Number.parseFloat(normalizedValue) || 0
+				// Converte vírgula para ponto (padrão brasileiro)
+				const normalizedValue = cleanValue.replace(',', '.');
 
-    onChange(numericValue)
-  }
+				// Converte para número
+				const numericValue = Number.parseFloat(normalizedValue) || 0;
 
-  const handleFocus = () => {
-    setIsFocused(true)
-  }
+				onChange(numericValue);
+			});
+		},
+		[onChange]
+	);
 
-  const handleBlur = () => {
-    setIsFocused(false)
-    // Formata o valor quando perde o foco
-    if (value > 0) {
-      setDisplayValue(centsToReals(realsToCents(value)).toFixed(2))
-    }
-  }
+	// Handlers de foco otimizados
+	const handleFocus = useCallback(() => {
+		setIsFocused(true);
+	}, []);
 
-  return (
-    <div className={`space-y-2 ${className}`}>
-      <Label htmlFor={label} className="text-lg font-semibold text-foreground">
-        {label}
-      </Label>
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-lg font-semibold text-muted-foreground">
-          R$
-        </span>
-        <Input
-          id={label}
-          type="text"
-          inputMode="decimal"
-          value={displayValue}
-          onChange={handleInputChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          placeholder={placeholder || "0,00"}
-          disabled={disabled}
-          className="pl-12 text-xl font-semibold h-14 touch-target high-contrast text-secondary-foreground bg-input"
-        />
-      </div>
-    </div>
-  )
+	const handleBlur = useCallback(() => {
+		setIsFocused(false);
+		// Formata o valor quando perde o foco
+		if (value > 0) {
+			setDisplayValue(formatCurrencyValue(value));
+		}
+	}, [value, formatCurrencyValue]);
+
+	return (
+		<div className={`space-y-2 ${className}`}>
+			<Label htmlFor={label} className='text-lg font-semibold text-foreground'>
+				{label}
+				{required && <span className='text-destructive ml-1'>*</span>}
+			</Label>
+			<div className='relative'>
+				<span className='absolute left-3 top-1/2 transform -translate-y-1/2 text-lg font-semibold text-muted-foreground'>
+					R$
+				</span>
+				<Input
+					id={label}
+					name={name}
+					type='text'
+					inputMode='decimal'
+					value={displayValue}
+					onChange={handleInputChange}
+					onFocus={handleFocus}
+					onBlur={handleBlur}
+					placeholder={placeholder || '0,00'}
+					disabled={disabled}
+					required={required}
+					aria-label={label}
+					aria-describedby={`${label}-description`}
+					className='pl-12 text-xl font-semibold h-14 touch-target high-contrast text-secondary-foreground bg-input 
+                   [appearance:textfield] 
+                   [&::-webkit-outer-spin-button]:appearance-none 
+                   [&::-webkit-inner-spin-button]:appearance-none
+                   [-moz-appearance:textfield]'
+				/>
+			</div>
+			<div
+				id={`${label}-description`}
+				className='text-sm text-muted-foreground'
+			>
+				Use vírgula para centavos (ex: 1,99)
+			</div>
+		</div>
+	);
 }
