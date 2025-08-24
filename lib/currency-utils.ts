@@ -2,9 +2,9 @@ import type { Denomination } from '@/types/currency';
 
 // Denominações brasileiras
 export const BRAZILIAN_DENOMINATIONS: Denomination[] = [
-	{ value: 200, type: 'note', label: 'R$ 200', active: true },
-	{ value: 100, type: 'note', label: 'R$ 100', active: true },
-	{ value: 50, type: 'note', label: 'R$ 50', active: true },
+	{ value: 200, type: 'note', label: 'R$ 200', active: false },
+	{ value: 100, type: 'note', label: 'R$ 100', active: false },
+	{ value: 50, type: 'note', label: 'R$ 50', active: false },
 	{ value: 20, type: 'note', label: 'R$ 20', active: true },
 	{ value: 10, type: 'note', label: 'R$ 10', active: true },
 	{ value: 5, type: 'note', label: 'R$ 5', active: true },
