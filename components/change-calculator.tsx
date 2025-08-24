@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Calculator, RotateCcw, Eye, EyeOff, Coins } from "lucide-react"
 import { CurrencyInput } from "./currency-input"
 import { DenominationDisplay } from "./denomination-display"
-import { calculateOptimalChange, separateNotesAndCoins, getTotalPieces } from "@/components/change-calculator"
+import { calculateOptimalChange, separateNotesAndCoins, getTotalPieces } from "@/lib/change-utils"
 import { formatCurrency } from "@/lib/currency-utils"
 import type { ChangeResult } from "@/types/currency"
 

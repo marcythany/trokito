@@ -17,7 +17,7 @@ import {
   createClosingRecord,
   validateClosing,
 } from "@/lib/closing-calculator"
-import { separateNotesAndCoins } from "@/components/change-calculator"
+import { separateNotesAndCoins } from "@/lib/change-utils"
 import type { DenominationCount } from "@/types/closing"
 
 export default function FechamentoPage() {
