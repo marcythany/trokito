@@ -5,8 +5,13 @@ import type {
 } from '@/types/closing';
 import { BRAZILIAN_DENOMINATIONS } from './currency-utils';
 
+// Filtra as denominações para fechamento (remove notas de 50, 100 e 200 reais)
+const FECHAMENTO_DENOMINATIONS = BRAZILIAN_DENOMINATIONS.filter(
+	(denomination) => denomination.value <= 20 || denomination.type === 'coin'
+);
+
 export function initializeDenominationCounts(): DenominationCount[] {
-	return BRAZILIAN_DENOMINATIONS.map((denomination) => ({
+	return FECHAMENTO_DENOMINATIONS.map((denomination) => ({
 		denomination,
 		count: 0,
 	}));
