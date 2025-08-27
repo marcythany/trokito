@@ -3,11 +3,11 @@ import type {
 	ClosingSummary,
 	DenominationCount,
 } from '@/types/closing';
-import { BRAZILIAN_DENOMINATIONS } from './currency-utils';
+import { BRAZILIAN_DENOMINATIONS, centsToReals } from './currency-utils';
 
 // Filtra as denominações para fechamento (remove notas de 50, 100 e 200 reais)
 const FECHAMENTO_DENOMINATIONS = BRAZILIAN_DENOMINATIONS.filter(
-	(denomination) => denomination.value <= 20 || denomination.type === 'coin'
+	(denomination) => denomination.value <= 2000 || denomination.type === 'coin'
 );
 
 export function initializeDenominationCounts(): DenominationCount[] {
@@ -32,24 +32,25 @@ export function updateDenominationCount(
 export function calculateClosingSummary(
 	counts: DenominationCount[]
 ): ClosingSummary {
-	const totalNotes = counts
+	// IMPORTANTE: Os valores já estão em centavos nas denominações
+	// Não precisamos converter, apenas somar diretamente
+
+	const totalNotesCents = counts
 		.filter((item) => item.denomination.type === 'note')
 		.reduce((sum, item) => sum + item.denomination.value * item.count, 0);
 
-	const totalCoins = counts
+	const totalCoinsCents = counts
 		.filter((item) => item.denomination.type === 'coin')
 		.reduce((sum, item) => sum + item.denomination.value * item.count, 0);
 
-	const totalAmount = totalNotes + totalCoins;
-
+	const totalAmountCents = totalNotesCents + totalCoinsCents;
 	const totalPieces = counts.reduce((sum, item) => sum + item.count, 0);
-
 	const denominationCounts = counts.filter((item) => item.count > 0);
 
 	return {
-		totalNotes,
-		totalCoins,
-		totalAmount,
+		totalNotes: centsToReals(totalNotesCents), // Converter para reais para exibição
+		totalCoins: centsToReals(totalCoinsCents), // Converter para reais para exibição
+		totalAmount: centsToReals(totalAmountCents), // Converter para reais para exibição
 		totalPieces,
 		denominationCounts,
 	};
@@ -95,7 +96,8 @@ export function validateClosing(summary: ClosingSummary): {
 
 	// Verifica se há valores muito altos (possível erro de digitação)
 	const hasHighCount = summary.denominationCounts.some((item) => {
-		if (item.denomination.value >= 50) {
+		if (item.denomination.value >= 5000) {
+			// R$ 50 ou mais (em centavos)
 			return item.count > 100; // Mais de 100 notas de R$ 50 ou maior
 		}
 		return item.count > 500; // Mais de 500 moedas ou notas pequenas
@@ -114,12 +116,15 @@ export function validateClosing(summary: ClosingSummary): {
 }
 
 export function getQuickCountOptions(denominationValue: number): number[] {
-	// Retorna opções de contagem rápida baseadas no valor da denominação
-	if (denominationValue >= 50) {
+	// Retorna opções de contagem rápida baseadas no valor da denominação (em centavos)
+	if (denominationValue >= 5000) {
+		// R$ 50 ou mais
 		return [5, 10, 20, 50];
-	} else if (denominationValue >= 10) {
+	} else if (denominationValue >= 1000) {
+		// R$ 10 ou mais
 		return [5, 10, 25, 50];
-	} else if (denominationValue >= 1) {
+	} else if (denominationValue >= 100) {
+		// R$ 1 ou mais
 		return [10, 20, 50, 100];
 	} else {
 		return [10, 25, 50, 100];
