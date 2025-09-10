@@ -1,14 +1,17 @@
 'use client';
 
+import ProtectedRoute from '@/components/protected-route';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Calculator } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Brazilian currency denominations (in cents to avoid floating point issues)
+// Excluding R$0.01 as it's not in practical circulation
 const DENOMINATIONS = [
 	{ value: 10000, label: 'R$ 100,00', type: 'bill' },
 	{ value: 5000, label: 'R$ 50,00', type: 'bill' },
@@ -21,18 +24,34 @@ const DENOMINATIONS = [
 	{ value: 25, label: 'R$ 0,25', type: 'coin' },
 	{ value: 10, label: 'R$ 0,10', type: 'coin' },
 	{ value: 5, label: 'R$ 0,05', type: 'coin' },
-	{ value: 1, label: 'R$ 0,01', type: 'coin' },
+	// R$ 0,01 excluded as it's not in practical circulation
 ];
 
 export default function ChangeCalculator() {
 	const [total, setTotal] = useState<string>('');
 	const [payment, setPayment] = useState<string>('');
-	const [change, setChange] = useState<number>(0);
-	const [changeBreakdown, setChangeBreakdown] = useState<
-		{ denomination: (typeof DENOMINATIONS)[0]; count: number }[]
-	>([]);
+	const [showExactChange, setShowExactChange] = useState<boolean>(false);
+	const [changeResult, setChangeResult] = useState<{
+		exact: {
+			cents: number;
+			breakdown: { denomination: (typeof DENOMINATIONS)[0]; count: number }[];
+		};
+		suggested: {
+			cents: number;
+			breakdown: { denomination: (typeof DENOMINATIONS)[0]; count: number }[];
+		};
+		difference: number;
+	} | null>(null);
 	const [error, setError] = useState<string>('');
 	const [hasCalculated, setHasCalculated] = useState<boolean>(false);
+	const mainHeadingRef = useRef<HTMLHeadingElement>(null);
+
+	// Focus the main heading when the page loads for better screen reader experience
+	useEffect(() => {
+		if (mainHeadingRef.current) {
+			mainHeadingRef.current.focus();
+		}
+	}, []);
 
 	// Convert string values to cents (integers) to avoid floating point issues
 	const toCents = (value: string): number => {
@@ -51,7 +70,31 @@ export default function ChangeCalculator() {
 		}).format(cents / 100);
 	};
 
-	// Calculate change and breakdown
+	// Round to nearest 5 cents
+	const roundToNearest5Cents = (cents: number): number => {
+		return Math.round(cents / 5) * 5;
+	};
+
+	// Calculate change breakdown using greedy algorithm
+	const calculateBreakdown = (
+		cents: number,
+		denominations: typeof DENOMINATIONS
+	): { denomination: (typeof DENOMINATIONS)[0]; count: number }[] => {
+		const breakdown = [];
+		let remaining = cents;
+
+		for (const denomination of denominations) {
+			const count = Math.floor(remaining / denomination.value);
+			if (count > 0) {
+				breakdown.push({ denomination, count });
+				remaining -= count * denomination.value;
+			}
+		}
+
+		return breakdown;
+	};
+
+	// Calculate change with both exact and suggested options
 	const calculateChange = () => {
 		setError('');
 		setHasCalculated(false);
@@ -70,33 +113,42 @@ export default function ChangeCalculator() {
 			return;
 		}
 
-		// Calculate change
-		const changeCents = paymentCents - totalCents;
+		// Calculate exact change
+		const exactChangeCents = paymentCents - totalCents;
 
-		if (changeCents < 0) {
+		if (exactChangeCents < 0) {
 			setError('Valor pago insuficiente');
 			return;
 		}
 
-		setChange(changeCents);
+		// Calculate suggested change (rounded to nearest 5 cents)
+		const suggestedChangeCents = roundToNearest5Cents(exactChangeCents);
 
-		// Calculate breakdown
-		if (changeCents > 0) {
-			const breakdown = [];
-			let remaining = changeCents;
+		// Check if difference is within tolerance (4 cents)
+		const difference = Math.abs(exactChangeCents - suggestedChangeCents);
+		const withinTolerance = difference <= 4;
 
-			for (const denomination of DENOMINATIONS) {
-				const count = Math.floor(remaining / denomination.value);
-				if (count > 0) {
-					breakdown.push({ denomination, count });
-					remaining -= count * denomination.value;
-				}
-			}
+		// Calculate breakdowns
+		const exactBreakdown = calculateBreakdown(exactChangeCents, [
+			...DENOMINATIONS,
+			{ value: 1, label: 'R$ 0,01', type: 'coin' },
+		]);
+		const suggestedBreakdown = calculateBreakdown(
+			suggestedChangeCents,
+			DENOMINATIONS
+		);
 
-			setChangeBreakdown(breakdown);
-		} else {
-			setChangeBreakdown([]);
-		}
+		setChangeResult({
+			exact: {
+				cents: exactChangeCents,
+				breakdown: exactBreakdown,
+			},
+			suggested: {
+				cents: suggestedChangeCents,
+				breakdown: suggestedBreakdown,
+			},
+			difference: withinTolerance ? difference : 0,
+		});
 
 		setHasCalculated(true);
 	};
@@ -105,10 +157,10 @@ export default function ChangeCalculator() {
 	const resetForm = () => {
 		setTotal('');
 		setPayment('');
-		setChange(0);
-		setChangeBreakdown([]);
+		setChangeResult(null);
 		setError('');
 		setHasCalculated(false);
+		setShowExactChange(false);
 	};
 
 	// Handle input formatting
@@ -148,142 +200,230 @@ export default function ChangeCalculator() {
 	};
 
 	return (
-		<div className='min-h-screen bg-background p-4'>
-			<div className='max-w-md mx-auto space-y-6'>
-				<div className='animate-in fade-in slide-in-from-top-2 duration-300'>
-					<Link href='/'>
-						<Button variant='ghost' className='mb-4 pl-0'>
-							<ArrowLeft className='mr-2 h-4 w-4' />
-							Voltar
-						</Button>
-					</Link>
+		<ProtectedRoute>
+			<div className='min-h-screen bg-background p-4'>
+				<div className='max-w-md mx-auto space-y-6'>
+					<div className='animate-in fade-in slide-in-from-top-2 duration-300'>
+						<Link href='/'>
+							<Button
+								variant='ghost'
+								className='mb-4 pl-0 focus:ring-2 focus:ring-primary focus:ring-offset-2'
+								aria-label='Voltar para a página inicial'
+							>
+								<ArrowLeft className='mr-2 h-4 w-4' aria-hidden='true' />
+								Voltar
+							</Button>
+						</Link>
 
-					<Card>
-						<CardHeader>
-							<CardTitle className='flex items-center gap-2'>
-								<Calculator className='h-6 w-6 text-primary' />
-								Calculadora de Troco
-							</CardTitle>
-							<p className='text-sm text-muted-foreground'>
-								Calcule o troco de forma rápida e precisa
-							</p>
-						</CardHeader>
-						<CardContent>
-							<form onSubmit={handleSubmit} className='space-y-4'>
-								<div className='space-y-2'>
-									<label htmlFor='total' className='text-sm font-medium'>
-										Valor Total (R$)
-									</label>
-									<Input
-										id='total'
-										type='text'
-										inputMode='decimal'
-										value={total}
-										onChange={handleTotalChange}
-										placeholder='R$ 0,00'
-										className='text-lg'
-									/>
-								</div>
-
-								<div className='space-y-2'>
-									<label htmlFor='payment' className='text-sm font-medium'>
-										Valor Pago (R$)
-									</label>
-									<Input
-										id='payment'
-										type='text'
-										inputMode='decimal'
-										value={payment}
-										onChange={handlePaymentChange}
-										placeholder='R$ 0,00'
-										className='text-lg'
-									/>
-								</div>
-
-								{error && (
-									<div className='text-sm text-destructive animate-in fade-in duration-300'>
-										{error}
-									</div>
-								)}
-
-								<div className='flex gap-2 pt-2'>
-									<Button type='submit' className='flex-1'>
-										Calcular Troco
-									</Button>
-									<Button type='button' variant='outline' onClick={resetForm}>
-										Limpar
-									</Button>
-								</div>
-							</form>
-						</CardContent>
-					</Card>
-				</div>
-
-				{hasCalculated && (
-					<div className='animate-in fade-in slide-in-from-bottom-2 duration-300'>
 						<Card>
 							<CardHeader>
-								<CardTitle>Resultado</CardTitle>
+								<CardTitle
+									ref={mainHeadingRef}
+									tabIndex={-1}
+									className='flex items-center gap-2 focus:outline-none'
+								>
+									<Calculator
+										className='h-6 w-6 text-primary'
+										aria-hidden='true'
+									/>
+									Calculadora de Troco
+								</CardTitle>
+								<p className='text-sm text-muted-foreground'>
+									Calcule o troco de forma rápida e otimizada
+								</p>
 							</CardHeader>
-							<CardContent className='space-y-4'>
-								<div className='grid grid-cols-2 gap-4'>
-									<div className='space-y-1'>
-										<p className='text-sm text-muted-foreground'>Total</p>
-										<p className='text-lg font-semibold'>
-											{formatCurrency(toCents(total))}
+							<CardContent>
+								<form onSubmit={handleSubmit} className='space-y-4'>
+									<div className='space-y-2'>
+										<label htmlFor='total' className='text-sm font-medium'>
+											Valor Total (R$)
+										</label>
+										<Input
+											id='total'
+											type='text'
+											inputMode='decimal'
+											value={total}
+											onChange={handleTotalChange}
+											placeholder='R$ 0,00'
+											className='text-lg'
+											aria-describedby='total-help'
+										/>
+										<p
+											id='total-help'
+											className='text-xs text-muted-foreground'
+										>
+											Digite o valor total da compra
 										</p>
 									</div>
-									<div className='space-y-1'>
-										<p className='text-sm text-muted-foreground'>Pago</p>
-										<p className='text-lg font-semibold'>
-											{formatCurrency(toCents(payment))}
-										</p>
-									</div>
-								</div>
 
-								<div className='border-t pt-4'>
-									<div className='flex justify-between items-center'>
-										<p className='font-medium'>Troco</p>
-										<p className='text-2xl font-bold text-primary'>
-											{formatCurrency(change)}
+									<div className='space-y-2'>
+										<label htmlFor='payment' className='text-sm font-medium'>
+											Valor Pago (R$)
+										</label>
+										<Input
+											id='payment'
+											type='text'
+											inputMode='decimal'
+											value={payment}
+											onChange={handlePaymentChange}
+											placeholder='R$ 0,00'
+											className='text-lg'
+											aria-describedby='payment-help'
+										/>
+										<p
+											id='payment-help'
+											className='text-xs text-muted-foreground'
+										>
+											Digite o valor pago pelo cliente
 										</p>
 									</div>
 
-									{change > 0 ? (
-										<div className='mt-4 space-y-2'>
-											<p className='text-sm font-medium'>Entregar em:</p>
-											<div className='space-y-2 max-h-60 overflow-y-auto'>
-												{changeBreakdown.map((item, index) => (
-													<div
-														key={index}
-														className='flex items-center justify-between p-3 bg-card border rounded-lg animate-in fade-in slide-in-from-left-2 duration-300'
-														style={{ animationDelay: `${index * 50}ms` }}
-													>
-														<span className='font-medium'>
-															{item.denomination.label}
-														</span>
-														<Badge variant='secondary' className='text-lg'>
-															{item.count}
-														</Badge>
-													</div>
-												))}
-											</div>
-										</div>
-									) : (
-										<div className='mt-4 text-center py-4'>
-											<p className='text-muted-foreground'>
-												{change === 0
-													? 'Valor exato! Não há troco.'
-													: 'Não foi possível calcular o troco.'}
-											</p>
+									{error && (
+										<div
+											className='text-sm text-destructive animate-in fade-in duration-300'
+											role='alert'
+											aria-live='assertive'
+										>
+											{error}
 										</div>
 									)}
-								</div>
+
+									<div className='flex gap-2 pt-2'>
+										<Button
+											type='submit'
+											className='flex-1 focus:ring-2 focus:ring-primary focus:ring-offset-2'
+										>
+											Calcular Troco
+										</Button>
+										<Button
+											type='button'
+											variant='outline'
+											onClick={resetForm}
+											className='focus:ring-2 focus:ring-primary focus:ring-offset-2'
+										>
+											Limpar
+										</Button>
+									</div>
+								</form>
 							</CardContent>
 						</Card>
 					</div>
-				)}
+
+					{hasCalculated && changeResult && (
+						<div className='animate-in fade-in slide-in-from-bottom-2 duration-300'>
+							<Card>
+								<CardHeader>
+									<CardTitle>Resultado</CardTitle>
+								</CardHeader>
+								<CardContent className='space-y-4'>
+									<div className='grid grid-cols-2 gap-4'>
+										<div className='space-y-1'>
+											<p className='text-sm text-muted-foreground'>Total</p>
+											<p className='text-lg font-semibold'>
+												{formatCurrency(toCents(total))}
+											</p>
+										</div>
+										<div className='space-y-1'>
+											<p className='text-sm text-muted-foreground'>Pago</p>
+											<p className='text-lg font-semibold'>
+												{formatCurrency(toCents(payment))}
+											</p>
+										</div>
+									</div>
+
+									<div className='border-t pt-4'>
+										<div className='flex justify-between items-center mb-4'>
+											<p className='font-medium'>Troco</p>
+											<div className='flex items-center space-x-2'>
+												<span className='text-sm'>Exato</span>
+												<Switch
+													checked={showExactChange}
+													onCheckedChange={setShowExactChange}
+													aria-label='Alternar entre troco exato e sugerido'
+												/>
+												<span className='text-sm'>Sugerido</span>
+											</div>
+										</div>
+
+										{showExactChange ? (
+											<>
+												<p
+													className='text-2xl font-bold text-primary text-center mb-4'
+													aria-live='polite'
+												>
+													{formatCurrency(changeResult.exact.cents)}
+												</p>
+												{changeResult.difference > 0 && (
+													<p className='text-sm text-muted-foreground text-center mb-4'>
+														Diferença de{' '}
+														{formatCurrency(changeResult.difference * 100)}
+													</p>
+												)}
+											</>
+										) : (
+											<>
+												<p
+													className='text-2xl font-bold text-primary text-center mb-4'
+													aria-live='polite'
+												>
+													{formatCurrency(changeResult.suggested.cents)}
+												</p>
+												{changeResult.difference > 0 && (
+													<p className='text-sm text-muted-foreground text-center mb-4'>
+														Arredondado de{' '}
+														{formatCurrency(changeResult.exact.cents)}{' '}
+														(tolerância de{' '}
+														{formatCurrency(changeResult.difference * 100)})
+													</p>
+												)}
+											</>
+										)}
+
+										{(showExactChange
+											? changeResult.exact.cents
+											: changeResult.suggested.cents) > 0 ? (
+											<div className='mt-4 space-y-2'>
+												<p className='text-sm font-medium'>
+													{showExactChange ? 'Troco exato:' : 'Troco sugerido:'}
+												</p>
+												<div className='space-y-2 max-h-60 overflow-y-auto'>
+													{(showExactChange
+														? changeResult.exact.breakdown
+														: changeResult.suggested.breakdown
+													).map((item, index) => (
+														<div
+															key={index}
+															className='flex items-center justify-between p-3 bg-card border rounded-lg animate-in fade-in slide-in-from-left-2 duration-300'
+															style={{ animationDelay: `${index * 50}ms` }}
+														>
+															<span className='font-medium'>
+																{item.denomination.label}
+															</span>
+															<Badge variant='secondary' className='text-lg'>
+																{item.count}
+															</Badge>
+														</div>
+													))}
+												</div>
+											</div>
+										) : (
+											<div className='mt-4 text-center py-4'>
+												<p className='text-muted-foreground'>
+													{(showExactChange
+														? changeResult.exact.cents
+														: changeResult.suggested.cents) === 0
+														? 'Valor exato! Não há troco.'
+														: 'Não foi possível calcular o troco.'}
+												</p>
+											</div>
+										)}
+									</div>
+								</CardContent>
+							</Card>
+						</div>
+					)}
+				</div>
 			</div>
-		</div>
+		</ProtectedRoute>
 	);
 }
