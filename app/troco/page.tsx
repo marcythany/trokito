@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Calculator } from 'lucide-react';
-import { motion } from 'motion';
 import Link from 'next/link';
 import { useState } from 'react';
 
@@ -151,11 +150,7 @@ export default function ChangeCalculator() {
 	return (
 		<div className='min-h-screen bg-background p-4'>
 			<div className='max-w-md mx-auto space-y-6'>
-				<motion.div
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.3 }}
-				>
+				<div className='animate-in fade-in slide-in-from-top-2 duration-300'>
 					<Link href='/'>
 						<Button variant='ghost' className='mb-4 pl-0'>
 							<ArrowLeft className='mr-2 h-4 w-4' />
@@ -206,13 +201,9 @@ export default function ChangeCalculator() {
 								</div>
 
 								{error && (
-									<motion.div
-										initial={{ opacity: 0 }}
-										animate={{ opacity: 1 }}
-										className='text-sm text-destructive'
-									>
+									<div className='text-sm text-destructive animate-in fade-in duration-300'>
 										{error}
-									</motion.div>
+									</div>
 								)}
 
 								<div className='flex gap-2 pt-2'>
@@ -226,14 +217,10 @@ export default function ChangeCalculator() {
 							</form>
 						</CardContent>
 					</Card>
-				</motion.div>
+				</div>
 
 				{hasCalculated && (
-					<motion.div
-						initial={{ opacity: 0, y: 20 }}
-						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.3 }}
-					>
+					<div className='animate-in fade-in slide-in-from-bottom-2 duration-300'>
 						<Card>
 							<CardHeader>
 								<CardTitle>Resultado</CardTitle>
@@ -267,12 +254,10 @@ export default function ChangeCalculator() {
 											<p className='text-sm font-medium'>Entregar em:</p>
 											<div className='space-y-2 max-h-60 overflow-y-auto'>
 												{changeBreakdown.map((item, index) => (
-													<motion.div
+													<div
 														key={index}
-														initial={{ opacity: 0, x: -20 }}
-														animate={{ opacity: 1, x: 0 }}
-														transition={{ delay: index * 0.05 }}
-														className='flex items-center justify-between p-3 bg-card border rounded-lg'
+														className='flex items-center justify-between p-3 bg-card border rounded-lg animate-in fade-in slide-in-from-left-2 duration-300'
+														style={{ animationDelay: `${index * 50}ms` }}
 													>
 														<span className='font-medium'>
 															{item.denomination.label}
@@ -280,7 +265,7 @@ export default function ChangeCalculator() {
 														<Badge variant='secondary' className='text-lg'>
 															{item.count}
 														</Badge>
-													</motion.div>
+													</div>
 												))}
 											</div>
 										</div>
@@ -296,7 +281,7 @@ export default function ChangeCalculator() {
 								</div>
 							</CardContent>
 						</Card>
-					</motion.div>
+					</div>
 				)}
 			</div>
 		</div>
