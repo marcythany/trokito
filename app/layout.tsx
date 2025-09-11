@@ -1,3 +1,4 @@
+import ErrorBoundary from '@/components/error-boundary';
 import type { Metadata } from 'next';
 import { Inter, Roboto } from 'next/font/google';
 import type React from 'react';
@@ -42,8 +43,10 @@ export const metadata: Metadata = {
 export const viewport = {
 	width: 'device-width',
 	initialScale: 1,
-	maximumScale: 1,
-	userScalable: false,
+	maximumScale: 5,
+	minimumScale: 0.5,
+	userScalable: true,
+	viewportFit: 'cover',
 };
 
 export default function RootLayout({
@@ -70,7 +73,7 @@ export default function RootLayout({
 				<a href='#main-content' className='skip-link'>
 					Pular para o conteúdo principal
 				</a>
-				{children}
+				<ErrorBoundary>{children}</ErrorBoundary>
 			</body>
 		</html>
 	);

@@ -450,7 +450,7 @@ export default function ChangeCalculator() {
 															: changeResult.suggested.breakdown
 														).map((item, index) => (
 															<div
-																key={index}
+																key={`${item.denomination.value}-${item.count}-${index}`}
 																className='flex items-center justify-between p-3 glassmorphism rounded-lg animate-in fade-in slide-in-from-left-2 duration-300'
 																style={{ animationDelay: `${index * 50}ms` }}
 															>
