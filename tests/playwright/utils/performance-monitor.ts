@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, Request } from '@playwright/test';
 
 /**
  * Performance monitoring utilities for UI/UX analysis
@@ -25,17 +25,23 @@ export class PerformanceMonitor {
 			)[0] as PerformanceEntry;
 
 			// Calculate Core Web Vitals
-			const clsEntries = performance.getEntriesByName('layout-shift');
+			const clsEntries = performance.getEntriesByName(
+				'layout-shift'
+			) as (PerformanceEntry & { value: number })[];
 			const clsValue = clsEntries.reduce(
-				(total, entry: any) => total + entry.value,
+				(total, entry) => total + entry.value,
 				0
 			);
 
-			const fidEntries = performance.getEntriesByName('first-input');
+			const fidEntries = performance.getEntriesByName(
+				'first-input'
+			) as (PerformanceEntry & {
+				processingStart: number;
+				startTime: number;
+			})[];
 			const fidValue =
 				fidEntries.length > 0
-					? (fidEntries[0] as any).processingStart -
-					  (fidEntries[0] as any).startTime
+					? fidEntries[0].processingStart - fidEntries[0].startTime
 					: 0;
 
 			return {
@@ -70,17 +76,49 @@ export class PerformanceMonitor {
 				// Resource timing
 				resources: performance.getEntriesByType('resource').map((entry) => ({
 					name: entry.name,
-					type: (entry as any).initiatorType,
+					type: (entry as PerformanceResourceTiming).initiatorType || 'unknown',
 					duration: entry.duration,
-					size: (entry as any).transferSize || 0,
+					size: (entry as PerformanceResourceTiming).transferSize || 0,
 				})),
 
 				// Memory usage (if available)
-				memory: (performance as any).memory
+				memory: (
+					performance as Performance & {
+						memory?: {
+							usedJSHeapSize: number;
+							totalJSHeapSize: number;
+							jsHeapSizeLimit: number;
+						};
+					}
+				).memory
 					? {
-							used: (performance as any).memory.usedJSHeapSize,
-							total: (performance as any).memory.totalJSHeapSize,
-							limit: (performance as any).memory.jsHeapSizeLimit,
+							used: (
+								performance as Performance & {
+									memory?: {
+										usedJSHeapSize: number;
+										totalJSHeapSize: number;
+										jsHeapSizeLimit: number;
+									};
+								}
+							).memory!.usedJSHeapSize,
+							total: (
+								performance as Performance & {
+									memory?: {
+										usedJSHeapSize: number;
+										totalJSHeapSize: number;
+										jsHeapSizeLimit: number;
+									};
+								}
+							).memory!.totalJSHeapSize,
+							limit: (
+								performance as Performance & {
+									memory?: {
+										usedJSHeapSize: number;
+										totalJSHeapSize: number;
+										jsHeapSizeLimit: number;
+									};
+								}
+							).memory!.jsHeapSizeLimit,
 					  }
 					: null,
 			};
@@ -136,7 +174,10 @@ export class PerformanceMonitor {
 	 */
 	private async getMemoryUsage(): Promise<number> {
 		return await this.page.evaluate(() => {
-			return (performance as any).memory?.usedJSHeapSize || 0;
+			return (
+				(performance as Performance & { memory?: { usedJSHeapSize: number } })
+					.memory?.usedJSHeapSize || 0
+			);
 		});
 	}
 
@@ -146,10 +187,15 @@ export class PerformanceMonitor {
 	async monitorNetworkRequests(
 		interaction: () => Promise<void>
 	): Promise<NetworkMetrics> {
-		const requests: any[] = [];
+		const requests: Array<{
+			url: string;
+			method: string;
+			resourceType: string;
+			timestamp: number;
+		}> = [];
 
 		// Start monitoring
-		const requestHandler = (request: any) => {
+		const requestHandler = (request: Request) => {
 			requests.push({
 				url: request.url(),
 				method: request.method(),
@@ -182,14 +228,16 @@ export class PerformanceMonitor {
 	async analyzeRendering(): Promise<RenderingMetrics> {
 		return await this.page.evaluate(() => {
 			const longTasks = performance.getEntriesByType('longtask');
-			const layoutShifts = performance.getEntriesByName('layout-shift');
+			const layoutShifts = performance.getEntriesByName(
+				'layout-shift'
+			) as (PerformanceEntry & { value: number })[];
 
 			return {
 				longTasks: longTasks.map((task) => ({
 					duration: task.duration,
 					startTime: task.startTime,
 				})),
-				layoutShifts: layoutShifts.map((shift: any) => ({
+				layoutShifts: layoutShifts.map((shift) => ({
 					value: shift.value,
 					startTime: shift.startTime,
 				})),
@@ -197,7 +245,7 @@ export class PerformanceMonitor {
 					return total + Math.max(0, task.duration - 50);
 				}, 0),
 				cumulativeLayoutShift: layoutShifts.reduce(
-					(total: number, shift: any) => total + shift.value,
+					(total: number, shift) => total + shift.value,
 					0
 				),
 			};

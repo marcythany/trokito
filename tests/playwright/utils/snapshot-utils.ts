@@ -2,6 +2,29 @@ import { Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Type definitions for better type safety
+interface ScreenshotMetadata {
+	path: string;
+	filename: string;
+	url: string;
+	timestamp: string;
+	viewport: { width: number; height: number } | null;
+}
+
+interface ResponsiveScreenshot extends ScreenshotMetadata {
+	viewport: { width: number; height: number; name: string };
+}
+
+interface PerformanceMetrics {
+	domContentLoaded: number;
+	loadComplete: number;
+	firstPaint: number;
+	firstContentfulPaint: number;
+	largestContentfulPaint: number;
+	cumulativeLayoutShift: number;
+	memoryUsage: number;
+}
+
 /**
  * Snapshot utilities for UI/UX analysis and visual regression testing
  */
@@ -42,21 +65,29 @@ export class SnapshotUtils {
 		const filename = `${name}${timestampStr}.png`;
 		const filepath = path.join(this.screenshotsDir, filename);
 
-		const screenshotOptions: any = {
-			path: filepath,
-			fullPage,
-			quality,
-			type: 'png',
-		};
-
 		if (element) {
 			const elementHandle = await this.page.locator(element).elementHandle();
 			if (elementHandle) {
-				screenshotOptions.element = elementHandle;
+				await elementHandle.screenshot({
+					path: filepath,
+					type: 'png',
+				});
+			} else {
+				await this.page.screenshot({
+					path: filepath,
+					fullPage,
+					quality,
+					type: 'png',
+				});
 			}
+		} else {
+			await this.page.screenshot({
+				path: filepath,
+				fullPage,
+				quality,
+				type: 'png',
+			});
 		}
-
-		await this.page.screenshot(screenshotOptions);
 
 		return {
 			path: filepath,
@@ -78,7 +109,7 @@ export class SnapshotUtils {
 			waitFor?: string;
 		}>
 	) {
-		const flowScreenshots: any[] = [];
+		const flowScreenshots: ScreenshotMetadata[] = [];
 
 		// Initial state
 		flowScreenshots.push(await this.takeScreenshot(`${name}-initial`));
@@ -173,8 +204,14 @@ export class SnapshotUtils {
 					performance.getEntriesByName('largest-contentful-paint')[0]
 						?.startTime || 0,
 				cumulativeLayoutShift:
-					(performance.getEntriesByName('layout-shift')[0] as any)?.value || 0,
-				memoryUsage: (performance as any).memory?.usedJSHeapSize || 0,
+					(
+						performance.getEntriesByName(
+							'layout-shift'
+						)[0] as PerformanceEntry & { value?: number }
+					)?.value || 0,
+				memoryUsage:
+					(performance as Performance & { memory?: { usedJSHeapSize: number } })
+						.memory?.usedJSHeapSize || 0,
 			})),
 		]);
 
@@ -197,7 +234,7 @@ export class SnapshotUtils {
 		name: string,
 		viewports: Array<{ width: number; height: number; name: string }>
 	) {
-		const screenshots: any[] = [];
+		const screenshots: ResponsiveScreenshot[] = [];
 
 		for (const viewport of viewports) {
 			await this.page.setViewportSize({
@@ -223,7 +260,7 @@ export class SnapshotUtils {
 	/**
 	 * Generate screenshot report
 	 */
-	generateReport(screenshots: any[], outputPath: string) {
+	generateReport(screenshots: ScreenshotMetadata[], outputPath: string) {
 		const report = {
 			generatedAt: new Date().toISOString(),
 			totalScreenshots: screenshots.length,

@@ -19,6 +19,37 @@ interface TestRunnerOptions {
 	report?: boolean;
 }
 
+interface PerformanceAnalysis {
+	loadTime: string;
+	coreWebVitals: {
+		cls: string;
+		fid: string;
+		lcp: string;
+	};
+	recommendations: string[];
+}
+
+interface AccessibilityAnalysis {
+	score: string;
+	issues: string[];
+	recommendations: string[];
+}
+
+interface TestReport {
+	generatedAt: string;
+	testSuite: string;
+	options: TestRunnerOptions;
+	screenshots: {
+		total: number;
+		files: string[];
+	};
+	analysis: {
+		recommendations: string[];
+		performance: PerformanceAnalysis | null;
+		accessibility: AccessibilityAnalysis;
+	};
+}
+
 class TrokitoTestRunner {
 	private options: TestRunnerOptions;
 	private testResultsDir: string;
@@ -154,7 +185,7 @@ class TrokitoTestRunner {
 		const reportPath = path.join(this.testResultsDir, 'ui-ux-report.json');
 		const screenshots = this.getScreenshotFiles();
 
-		const report = {
+		const report: TestReport = {
 			generatedAt: new Date().toISOString(),
 			testSuite: 'Trokito UI/UX Analysis',
 			options: this.options,
@@ -222,7 +253,7 @@ class TrokitoTestRunner {
 	/**
 	 * Analyze performance metrics
 	 */
-	private async analyzePerformance(): Promise<any> {
+	private async analyzePerformance(): Promise<PerformanceAnalysis> {
 		// This would analyze performance metrics from test results
 		return {
 			loadTime: '< 3s (target)',
@@ -242,7 +273,7 @@ class TrokitoTestRunner {
 	/**
 	 * Analyze accessibility compliance
 	 */
-	private async analyzeAccessibility(): Promise<any> {
+	private async analyzeAccessibility(): Promise<AccessibilityAnalysis> {
 		return {
 			score: 'Good',
 			issues: [],
@@ -258,7 +289,7 @@ class TrokitoTestRunner {
 	/**
 	 * Generate HTML report
 	 */
-	private async generateHTMLReport(report: any) {
+	private async generateHTMLReport(report: TestReport) {
 		const htmlPath = path.join(this.testResultsDir, 'ui-ux-report.html');
 
 		const html = `
@@ -389,7 +420,7 @@ if (require.main === module) {
 	args.forEach((arg) => {
 		if (arg.startsWith('--')) {
 			const [key, value] = arg.slice(2).split('=');
-			(options as any)[key] =
+			(options as Record<string, boolean | string>)[key] =
 				value === 'true' || value === undefined ? true : value;
 		}
 	});
