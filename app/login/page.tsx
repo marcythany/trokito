@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { auth, type User } from '@/lib/auth';
@@ -106,31 +105,47 @@ export default function LoginPage() {
 	};
 
 	return (
-		<div className='min-h-screen bg-background flex items-center justify-center p-4'>
-			<div className='max-w-md w-full space-y-6'>
-				<div className='text-center'>
-					<h1
-						ref={mainHeadingRef}
-						tabIndex={-1}
-						className='text-3xl font-bold text-foreground focus:outline-none'
-					>
-						Trokito
-					</h1>
-					<p className='text-muted-foreground mt-2'>
-						Calculadora de Troco Inteligente
-					</p>
-				</div>
+		<div className='min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4 relative overflow-hidden'>
+			{/* Background blur and grain effects - 2025 trend */}
+			<div className='absolute inset-0 blur-bg grain-overlay' />
 
-				<Card>
-					<CardHeader>
-						<CardTitle className='text-center' id='form-title'>
-							{isRegistering ? 'Registro' : 'Login'}
-						</CardTitle>
-					</CardHeader>
-					<CardContent className='space-y-4'>
+			{/* Animated background elements */}
+			<div className='absolute inset-0 overflow-hidden'>
+				<div className='absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse' />
+				<div className='absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000' />
+			</div>
+
+			<div className='relative z-10 w-full max-w-6xl'>
+				{/* Bento grid layout - 2025 trend */}
+				<div className='bento-grid gap-6'>
+					{/* Header section */}
+					<div className='bento-item col-span-1 md:col-span-2 lg:col-span-3 text-center'>
+						<h1
+							ref={mainHeadingRef}
+							tabIndex={-1}
+							className='kinetic-text text-4xl md:text-6xl font-bold mb-4 focus:outline-none'
+						>
+							Trokito
+						</h1>
+						<p className='text-muted-foreground text-lg md:text-xl'>
+							Calculadora de Troco Inteligente
+						</p>
+					</div>
+
+					{/* Main login card with glassmorphism - 2025 trend */}
+					<div className='bento-item glassmorphism neumorphism'>
+						<div className='text-center mb-6'>
+							<h2
+								className='text-2xl font-semibold text-foreground'
+								id='form-title'
+							>
+								{isRegistering ? 'Registro' : 'Login'}
+							</h2>
+						</div>
+
 						{error && (
 							<div
-								className='text-sm text-destructive text-center p-2 bg-destructive/10 rounded'
+								className='text-sm text-destructive text-center p-3 bg-destructive/10 rounded-xl border border-destructive/20 mb-4'
 								role='alert'
 								aria-live='assertive'
 							>
@@ -139,16 +154,22 @@ export default function LoginPage() {
 						)}
 
 						{isRegistering ? (
-							<div className='space-y-4'>
-								<div className='space-y-2'>
-									<Label htmlFor='username'>Nome do Operador</Label>
+							<div className='space-y-6'>
+								{/* Username input with enhanced styling */}
+								<div className='space-y-3'>
+									<Label
+										htmlFor='username'
+										className='text-foreground font-medium'
+									>
+										Nome do Operador
+									</Label>
 									<Input
 										id='username'
 										type='text'
 										value={username}
 										onChange={(e) => setUsername(e.target.value)}
 										placeholder='Seu nome'
-										className='text-lg'
+										className='text-lg h-12 neumorphism-inset focus-ring'
 										aria-describedby='username-help'
 									/>
 									<p
@@ -159,11 +180,12 @@ export default function LoginPage() {
 									</p>
 								</div>
 
+								{/* WebAuthn registration */}
 								{isWebAuthnSupported ? (
-									<>
+									<div className='space-y-2'>
 										<Button
 											onClick={handleWebAuthnRegister}
-											className='w-full focus:ring-2 focus:ring-primary focus:ring-offset-2'
+											className='w-full h-12 neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
 											aria-describedby='webauthn-register-help'
 										>
 											Registrar com Biometria/PIN do Sistema
@@ -174,10 +196,10 @@ export default function LoginPage() {
 										>
 											Use sua biometria ou PIN do sistema para registro seguro
 										</p>
-									</>
+									</div>
 								) : (
 									<div
-										className='text-sm text-muted-foreground text-center p-2 bg-muted rounded'
+										className='text-sm text-muted-foreground text-center p-3 bg-muted/50 rounded-xl border'
 										role='status'
 									>
 										WebAuthn não suportado neste navegador. Use o PIN como
@@ -185,26 +207,30 @@ export default function LoginPage() {
 									</div>
 								)}
 
-								<div className='relative my-4'>
+								{/* Divider with glassmorphism */}
+								<div className='relative my-6'>
 									<div className='absolute inset-0 flex items-center'>
-										<div className='w-full border-t border-border' />
+										<div className='w-full border-t border-border/50' />
 									</div>
 									<div className='relative flex justify-center text-xs uppercase'>
-										<span className='bg-background px-2 text-muted-foreground'>
+										<span className='glassmorphism px-4 py-1 rounded-full text-muted-foreground font-medium'>
 											ou
 										</span>
 									</div>
 								</div>
 
-								<div className='space-y-2'>
-									<Label htmlFor='pin'>Configurar PIN (4-6 dígitos)</Label>
+								{/* PIN setup */}
+								<div className='space-y-3'>
+									<Label htmlFor='pin' className='text-foreground font-medium'>
+										Configurar PIN (4-6 dígitos)
+									</Label>
 									<Input
 										id='pin'
 										type='password'
 										value={pin}
 										onChange={(e) => setPin(e.target.value)}
 										placeholder='****'
-										className='text-lg'
+										className='text-lg h-12 neumorphism-inset focus-ring'
 										maxLength={6}
 										aria-describedby='pin-help'
 									/>
@@ -216,7 +242,7 @@ export default function LoginPage() {
 								<Button
 									onClick={handleSetPIN}
 									variant='outline'
-									className='w-full focus:ring-2 focus:ring-primary focus:ring-offset-2'
+									className='w-full h-12 neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
 									aria-describedby='set-pin-help'
 								>
 									Configurar PIN
@@ -229,12 +255,13 @@ export default function LoginPage() {
 								</p>
 							</div>
 						) : (
-							<div className='space-y-4'>
+							<div className='space-y-6'>
+								{/* WebAuthn login */}
 								{isWebAuthnSupported && (
-									<>
+									<div className='space-y-2'>
 										<Button
 											onClick={handleWebAuthnLogin}
-											className='w-full focus:ring-2 focus:ring-primary focus:ring-offset-2'
+											className='w-full h-12 neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
 											aria-describedby='webauthn-login-help'
 										>
 											Entrar com Biometria/PIN do Sistema
@@ -245,29 +272,33 @@ export default function LoginPage() {
 										>
 											Use sua biometria ou PIN do sistema para login seguro
 										</p>
-									</>
+									</div>
 								)}
 
-								<div className='relative my-4'>
+								{/* Divider */}
+								<div className='relative my-6'>
 									<div className='absolute inset-0 flex items-center'>
-										<div className='w-full border-t border-border' />
+										<div className='w-full border-t border-border/50' />
 									</div>
 									<div className='relative flex justify-center text-xs uppercase'>
-										<span className='bg-background px-2 text-muted-foreground'>
+										<span className='glassmorphism px-4 py-1 rounded-full text-muted-foreground font-medium'>
 											ou
 										</span>
 									</div>
 								</div>
 
-								<div className='space-y-2'>
-									<Label htmlFor='pin'>Entrar com PIN</Label>
+								{/* PIN login */}
+								<div className='space-y-3'>
+									<Label htmlFor='pin' className='text-foreground font-medium'>
+										Entrar com PIN
+									</Label>
 									<Input
 										id='pin'
 										type='password'
 										value={pin}
 										onChange={(e) => setPin(e.target.value)}
 										placeholder='****'
-										className='text-lg'
+										className='text-lg h-12 neumorphism-inset focus-ring'
 										maxLength={6}
 										aria-describedby='login-pin-help'
 									/>
@@ -282,37 +313,59 @@ export default function LoginPage() {
 								<Button
 									onClick={handlePINLogin}
 									variant='outline'
-									className='w-full focus:ring-2 focus:ring-primary focus:ring-offset-2'
+									className='w-full h-12 neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
 								>
 									Entrar com PIN
 								</Button>
 							</div>
 						)}
 
-						<div className='text-center pt-4'>
+						{/* Toggle register/login */}
+						<div className='text-center pt-6'>
 							<Button
 								variant='link'
 								onClick={() => {
 									setIsRegistering(!isRegistering);
 									setError('');
 								}}
-								className='text-sm focus:ring-2 focus:ring-primary focus:ring-offset-2'
+								className='text-sm focus-ring hover:text-primary transition-colors duration-200'
 							>
 								{isRegistering
 									? 'Já tem uma conta? Faça login'
 									: 'Não tem uma conta? Registre-se'}
 							</Button>
 						</div>
-					</CardContent>
-				</Card>
+					</div>
 
-				<div className='text-center text-xs text-muted-foreground'>
-					<p>
-						Para segurança, use biometria ou PIN do sistema quando disponível.
-					</p>
-					<p className='mt-1'>
-						O PIN local é criptografado e armazenado apenas neste dispositivo.
-					</p>
+					{/* Security info card */}
+					<div className='bento-item glassmorphism neumorphism'>
+						<div className='text-center space-y-3'>
+							<div className='w-12 h-12 mx-auto neumorphism rounded-full flex items-center justify-center'>
+								<span className='text-2xl'>🔒</span>
+							</div>
+							<h3 className='font-semibold text-foreground'>Segurança</h3>
+							<p className='text-sm text-muted-foreground'>
+								Para segurança, use biometria ou PIN do sistema quando
+								disponível. O PIN local é criptografado e armazenado apenas
+								neste dispositivo.
+							</p>
+						</div>
+					</div>
+
+					{/* Features card */}
+					<div className='bento-item glassmorphism neumorphism'>
+						<div className='text-center space-y-3'>
+							<div className='w-12 h-12 mx-auto neumorphism rounded-full flex items-center justify-center'>
+								<span className='text-2xl'>⚡</span>
+							</div>
+							<h3 className='font-semibold text-foreground'>Recursos</h3>
+							<p className='text-sm text-muted-foreground'>
+								Calculadora inteligente de troco com interface moderna e
+								acessível. Suporte completo a WebAuthn e autenticação
+								biométrica.
+							</p>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
