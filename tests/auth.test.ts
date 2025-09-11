@@ -107,10 +107,12 @@ describe('Authentication', () => {
 		expect(auth.isWebAuthnSupported()).toBe(false);
 
 		// Mock WebAuthn support
-		(window as any).PublicKeyCredential = {};
+		(window as Window & { PublicKeyCredential?: object }).PublicKeyCredential =
+			{};
 		expect(auth.isWebAuthnSupported()).toBe(true);
 
 		// Clean up
-		delete (window as any).PublicKeyCredential;
+		delete (window as Window & { PublicKeyCredential?: object })
+			.PublicKeyCredential;
 	});
 });

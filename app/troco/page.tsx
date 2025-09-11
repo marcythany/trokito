@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
+import { db } from '@/lib/db';
 import { ArrowLeft, Calculator } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -95,7 +96,7 @@ export default function ChangeCalculator() {
 	};
 
 	// Calculate change with both exact and suggested options
-	const calculateChange = () => {
+	const calculateChange = async () => {
 		setError('');
 		setHasCalculated(false);
 
@@ -149,6 +150,19 @@ export default function ChangeCalculator() {
 			},
 			difference: withinTolerance ? difference : 0,
 		});
+
+		// Save calculation to history
+		try {
+			await db.addCalculation({
+				date: new Date(),
+				total: totalCents,
+				payment: paymentCents,
+				change: suggestedChangeCents,
+				breakdown: suggestedBreakdown,
+			});
+		} catch (error) {
+			console.error('Erro ao salvar cálculo:', error);
+		}
 
 		setHasCalculated(true);
 	};

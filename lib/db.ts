@@ -11,11 +11,28 @@ export interface Closing {
 	total: number;
 }
 
+export interface Calculation {
+	id?: number;
+	date: Date;
+	total: number;
+	payment: number;
+	change: number;
+	breakdown: {
+		denomination: {
+			value: number;
+			label: string;
+			type: string;
+		};
+		count: number;
+	}[];
+}
+
 class DatabaseService {
 	private db: IDBDatabase | null = null;
 	private readonly DB_NAME = 'TrokitoDB';
-	private readonly DB_VERSION = 1;
+	private readonly DB_VERSION = 2;
 	private readonly CLOSINGS_STORE = 'closings';
+	private readonly CALCULATIONS_STORE = 'calculations';
 
 	constructor() {
 		if (typeof window !== 'undefined') {
@@ -43,6 +60,15 @@ class DatabaseService {
 				// Create closings store
 				if (!db.objectStoreNames.contains(this.CLOSINGS_STORE)) {
 					const store = db.createObjectStore(this.CLOSINGS_STORE, {
+						keyPath: 'id',
+						autoIncrement: true,
+					});
+					store.createIndex('date', 'date', { unique: false });
+				}
+
+				// Create calculations store
+				if (!db.objectStoreNames.contains(this.CALCULATIONS_STORE)) {
+					const store = db.createObjectStore(this.CALCULATIONS_STORE, {
 						keyPath: 'id',
 						autoIncrement: true,
 					});
@@ -170,6 +196,69 @@ class DatabaseService {
 		});
 
 		return csv;
+	}
+
+	// Add a new calculation
+	async addCalculation(calculation: Omit<Calculation, 'id'>): Promise<number> {
+		const db = await this.getDB();
+		const transaction = db.transaction([this.CALCULATIONS_STORE], 'readwrite');
+		const store = transaction.objectStore(this.CALCULATIONS_STORE);
+
+		return new Promise((resolve, reject) => {
+			const request = store.add({
+				...calculation,
+				date: calculation.date || new Date(),
+			});
+
+			request.onsuccess = () => {
+				resolve(request.result as number);
+			};
+
+			request.onerror = () => {
+				console.error('Erro ao adicionar cálculo:', request.error);
+				reject(request.error);
+			};
+		});
+	}
+
+	// Get all calculations
+	async getAllCalculations(): Promise<Calculation[]> {
+		const db = await this.getDB();
+		const transaction = db.transaction([this.CALCULATIONS_STORE], 'readonly');
+		const store = transaction.objectStore(this.CALCULATIONS_STORE);
+
+		return new Promise((resolve, reject) => {
+			const request = store.getAll();
+
+			request.onsuccess = () => {
+				resolve(request.result as Calculation[]);
+			};
+
+			request.onerror = () => {
+				console.error('Erro ao buscar cálculos:', request.error);
+				reject(request.error);
+			};
+		});
+	}
+
+	// Delete calculation by ID
+	async deleteCalculation(id: number): Promise<void> {
+		const db = await this.getDB();
+		const transaction = db.transaction([this.CALCULATIONS_STORE], 'readwrite');
+		const store = transaction.objectStore(this.CALCULATIONS_STORE);
+
+		return new Promise((resolve, reject) => {
+			const request = store.delete(id);
+
+			request.onsuccess = () => {
+				resolve();
+			};
+
+			request.onerror = () => {
+				console.error('Erro ao deletar cálculo:', request.error);
+				reject(request.error);
+			};
+		});
 	}
 }
 
