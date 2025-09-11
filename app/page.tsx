@@ -2,7 +2,6 @@
 
 import ProtectedRoute from '@/components/protected-route';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import {
 	Calculator,
 	FileText,
@@ -76,67 +75,93 @@ export default function HomePage() {
 
 	return (
 		<ProtectedRoute>
-			<div className='min-h-screen bg-background p-4'>
-				<div className='max-w-md mx-auto space-y-6'>
-					<div className='text-center space-y-2 py-6'>
-						<h1
-							ref={mainHeadingRef}
-							tabIndex={-1}
-							className='text-4xl font-bold text-foreground font-serif focus:outline-none'
-						>
-							Trokito
-						</h1>
-						<p className='text-lg text-foreground/80'>
-							Calculadora de Troco Inteligente
-						</p>
-						{!isInstalled && (
-							<p className='text-sm text-foreground/60 mt-4' role='status'>
-								💡 Adicione à tela inicial para acesso rápido
+			<div className='min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4 relative overflow-hidden'>
+				{/* Background blur and grain effects - 2025 trend */}
+				<div className='absolute inset-0 blur-bg grain-overlay' />
+
+				{/* Animated background elements */}
+				<div className='absolute inset-0 overflow-hidden'>
+					<div className='absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse' />
+					<div className='absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000' />
+				</div>
+
+				<div className='relative z-10 w-full max-w-6xl'>
+					{/* Bento grid layout - 2025 trend */}
+					<div className='bento-grid gap-6'>
+						{/* Header section */}
+						<div className='bento-item col-span-1 md:col-span-2 lg:col-span-3 text-center'>
+							<h1
+								ref={mainHeadingRef}
+								tabIndex={-1}
+								className='kinetic-text text-4xl md:text-6xl font-bold mb-4 focus:outline-none'
+							>
+								Trokito
+							</h1>
+							<p className='text-muted-foreground text-lg md:text-xl'>
+								Calculadora de Troco Inteligente
 							</p>
-						)}
-					</div>
-
-					<nav aria-label='Menu principal'>
-						<div className='space-y-4'>
-							{menuItems.map((item) => {
-								const Icon = item.icon;
-								return (
-									<Card
-										key={item.href}
-										className='border-2 border-border hover:border-accent transition-colors'
-									>
-										<CardContent className='p-0'>
-											<Button
-												variant='ghost'
-												className='w-full h-auto p-6 flex items-center gap-4 text-left touch-target focus:ring-2 focus:ring-primary focus:ring-offset-2'
-												onClick={() => (window.location.href = item.href)}
-												aria-label={`${item.title}: ${item.description}`}
-											>
-												<div className={`p-3 rounded-lg ${item.color}`}>
-													<Icon
-														className='h-8 w-8 text-white'
-														aria-hidden='true'
-													/>
-												</div>
-												<div className='flex-1'>
-													<h3 className='text-xl font-semibold text-foreground font-serif'>
-														{item.title}
-													</h3>
-													<p className='text-foreground/70 mt-1'>
-														{item.description}
-													</p>
-												</div>
-											</Button>
-										</CardContent>
-									</Card>
-								);
-							})}
+							{!isInstalled && (
+								<div className='glassmorphism rounded-xl p-3 mt-4 inline-block'>
+									<p className='text-sm text-foreground/80' role='status'>
+										💡 Adicione à tela inicial para acesso rápido
+									</p>
+								</div>
+							)}
 						</div>
-					</nav>
 
-					<div className='text-center text-sm text-foreground/60 py-4'>
-						<p>Versão 1.0 - Funciona offline</p>
-						<p className='mt-1'>Feito para operadores de caixa brasileiros</p>
+						{/* Menu items with glassmorphism - 2025 trend */}
+						{menuItems.map((item, index) => {
+							const Icon = item.icon;
+							return (
+								<div
+									key={item.href}
+									className={`bento-item glassmorphism neumorphism hover:transform hover:scale-105 transition-all duration-300 ${
+										index === 0 ? 'col-span-1 md:col-span-2' : ''
+									}`}
+								>
+									<Button
+										variant='ghost'
+										className='w-full h-full p-6 flex flex-col items-center gap-4 text-center touch-target focus-ring'
+										onClick={() => (window.location.href = item.href)}
+										aria-label={`${item.title}: ${item.description}`}
+									>
+										<div className='neumorphism rounded-xl p-4'>
+											<Icon
+												className='h-10 w-10 text-primary'
+												aria-hidden='true'
+											/>
+										</div>
+										<div className='flex-1'>
+											<h3 className='text-xl font-semibold text-foreground mb-2'>
+												{item.title}
+											</h3>
+											<p className='text-muted-foreground text-sm leading-relaxed'>
+												{item.description}
+											</p>
+										</div>
+									</Button>
+								</div>
+							);
+						})}
+
+						{/* Footer info card */}
+						<div className='bento-item glassmorphism neumorphism col-span-1 md:col-span-2 lg:col-span-3'>
+							<div className='text-center space-y-3'>
+								<div className='w-12 h-12 mx-auto neumorphism rounded-full flex items-center justify-center'>
+									<span className='text-2xl'>⚡</span>
+								</div>
+								<h3 className='font-semibold text-foreground'>
+									Sobre o Trokito
+								</h3>
+								<div className='space-y-2 text-sm text-muted-foreground'>
+									<p>Versão 1.0 - Funciona completamente offline</p>
+									<p>
+										Feito especialmente para operadores de caixa brasileiros
+									</p>
+									<p>Interface moderna com suporte a acessibilidade</p>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

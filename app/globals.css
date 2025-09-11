@@ -149,7 +149,7 @@
 	}
 }
 
-@layer components {
+@layer utilities {
 	/* Glassmorphism effect - 2025 trend */
 	.glassmorphism {
 		background: rgba(255, 255, 255, 0.1);
@@ -250,7 +250,9 @@
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
 	}
+}
 
+@layer utilities {
 	/* Responsive design improvements */
 	@media (max-width: 640px) {
 		.bento-grid {

@@ -3,7 +3,6 @@
 import ProtectedRoute from '@/components/protected-route';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { db } from '@/lib/db';
@@ -214,47 +213,69 @@ export default function ChangeCalculator() {
 
 	return (
 		<ProtectedRoute>
-			<div className='min-h-screen bg-background p-4'>
-				<div className='max-w-md mx-auto space-y-6'>
-					<div className='animate-in fade-in slide-in-from-top-2 duration-300'>
-						<Link href='/'>
-							<Button
-								variant='ghost'
-								className='mb-4 pl-0 focus:ring-2 focus:ring-primary focus:ring-offset-2'
-								aria-label='Voltar para a página inicial'
-							>
-								<ArrowLeft className='mr-2 h-4 w-4' aria-hidden='true' />
-								Voltar
-							</Button>
-						</Link>
+			<div className='min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4 relative overflow-hidden'>
+				{/* Background blur and grain effects - 2025 trend */}
+				<div className='absolute inset-0 blur-bg grain-overlay' />
 
-						<Card>
-							<CardHeader>
-								<CardTitle
-									ref={mainHeadingRef}
-									tabIndex={-1}
-									className='flex items-center gap-2 focus:outline-none'
-								>
+				{/* Animated background elements */}
+				<div className='absolute inset-0 overflow-hidden'>
+					<div className='absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-pulse' />
+					<div className='absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000' />
+				</div>
+
+				<div className='relative z-10 w-full max-w-6xl'>
+					{/* Bento grid layout - 2025 trend */}
+					<div className='bento-grid gap-6'>
+						{/* Header section */}
+						<div className='bento-item col-span-1 md:col-span-2 lg:col-span-3'>
+							<div className='flex items-center justify-between mb-4'>
+								<Link href='/'>
+									<Button
+										variant='ghost'
+										className='neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
+										aria-label='Voltar para a página inicial'
+									>
+										<ArrowLeft className='mr-2 h-4 w-4' aria-hidden='true' />
+										Voltar
+									</Button>
+								</Link>
+							</div>
+
+							<div className='text-center space-y-3'>
+								<div className='w-16 h-16 mx-auto neumorphism rounded-full flex items-center justify-center'>
 									<Calculator
-										className='h-6 w-6 text-primary'
+										className='h-8 w-8 text-primary'
 										aria-hidden='true'
 									/>
+								</div>
+								<h1
+									ref={mainHeadingRef}
+									tabIndex={-1}
+									className='kinetic-text text-3xl font-bold focus:outline-none'
+								>
 									Calculadora de Troco
-								</CardTitle>
-								<p className='text-sm text-muted-foreground'>
+								</h1>
+								<p className='text-muted-foreground'>
 									Calcule o troco considerando a contribuição do cliente
 								</p>
-								<div className='mt-2 text-xs text-muted-foreground'>
-									<span className='inline-flex items-center gap-1'>
-										<span className='w-2 h-2 bg-green-500 rounded-full'></span>
+								<div className='glassmorphism rounded-full px-4 py-2 inline-block'>
+									<span className='inline-flex items-center gap-2 text-sm text-foreground/80'>
+										<span className='w-2 h-2 bg-green-500 rounded-full animate-pulse'></span>
 										Integração PDV
 									</span>
 								</div>
-							</CardHeader>
-							<CardContent>
+							</div>
+						</div>
+
+						{/* Calculator form with glassmorphism - 2025 trend */}
+						<div className='bento-item glassmorphism neumorphism'>
+							<div className='space-y-6'>
 								<form onSubmit={handleSubmit} className='space-y-4'>
 									<div className='space-y-2'>
-										<label htmlFor='pdvChange' className='text-sm font-medium'>
+										<label
+											htmlFor='pdvChange'
+											className='text-sm font-medium text-foreground'
+										>
 											Valor do Troco do PDV (R$)
 										</label>
 										<Input
@@ -264,7 +285,7 @@ export default function ChangeCalculator() {
 											value={pdvChange}
 											onChange={handlePdvChange}
 											placeholder='R$ 0,00'
-											className='text-lg'
+											className='text-lg neumorphism-inset focus-ring'
 											aria-describedby='pdv-help'
 										/>
 										<p id='pdv-help' className='text-xs text-muted-foreground'>
@@ -275,7 +296,7 @@ export default function ChangeCalculator() {
 									<div className='space-y-2'>
 										<label
 											htmlFor='customerContribution'
-											className='text-sm font-medium'
+											className='text-sm font-medium text-foreground'
 										>
 											Valor Ajudado pelo Cliente (Opcional)
 										</label>
@@ -286,7 +307,7 @@ export default function ChangeCalculator() {
 											value={customerContribution}
 											onChange={handleCustomerContributionChange}
 											placeholder='R$ 0,00'
-											className='text-lg'
+											className='text-lg neumorphism-inset focus-ring'
 											aria-describedby='contribution-help'
 										/>
 										<p
@@ -300,7 +321,7 @@ export default function ChangeCalculator() {
 
 									{error && (
 										<div
-											className='text-sm text-destructive animate-in fade-in duration-300'
+											className='text-sm text-destructive animate-in fade-in duration-300 glassmorphism p-3 rounded-xl border border-destructive/20'
 											role='alert'
 											aria-live='assertive'
 										>
@@ -308,10 +329,10 @@ export default function ChangeCalculator() {
 										</div>
 									)}
 
-									<div className='flex gap-2 pt-2'>
+									<div className='flex gap-3 pt-2'>
 										<Button
 											type='submit'
-											className='flex-1 focus:ring-2 focus:ring-primary focus:ring-offset-2'
+											className='flex-1 neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
 										>
 											Calcular Troco
 										</Button>
@@ -319,133 +340,145 @@ export default function ChangeCalculator() {
 											type='button'
 											variant='outline'
 											onClick={resetForm}
-											className='focus:ring-2 focus:ring-primary focus:ring-offset-2'
+											className='neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
 										>
 											Limpar
 										</Button>
 									</div>
 								</form>
-							</CardContent>
-						</Card>
-					</div>
+							</div>
+						</div>
 
-					{hasCalculated && changeResult && (
-						<div className='animate-in fade-in slide-in-from-bottom-2 duration-300'>
-							<Card>
-								<CardHeader>
-									<CardTitle>Resultado</CardTitle>
-								</CardHeader>
-								<CardContent className='space-y-4'>
-									<div className='space-y-1'>
-										<p className='text-sm text-muted-foreground'>
-											Troco do PDV
-										</p>
-										<p className='text-lg font-semibold'>
-											{formatCurrency(toCents(pdvChange))}
-										</p>
+						{hasCalculated && changeResult && (
+							<div className='bento-item glassmorphism neumorphism'>
+								<div className='space-y-6'>
+									<div className='text-center'>
+										<h2 className='text-2xl font-semibold text-foreground'>
+											Resultado
+										</h2>
 									</div>
-									{toCents(customerContribution) > 0 && (
-										<div className='space-y-1'>
+
+									<div className='space-y-4'>
+										<div className='space-y-2'>
 											<p className='text-sm text-muted-foreground'>
-												Cliente Ajudou
+												Troco do PDV
 											</p>
-											<p className='text-lg font-semibold text-green-600'>
-												{formatCurrency(toCents(customerContribution))}
+											<p className='text-xl font-semibold text-primary'>
+												{formatCurrency(toCents(pdvChange))}
 											</p>
 										</div>
-									)}
-
-									<div className='border-t pt-4'>
-										<div className='flex justify-between items-center mb-4'>
-											<p className='font-medium'>Troco</p>
-											<div className='flex items-center space-x-2'>
-												<span className='text-sm'>Exato</span>
-												<Switch
-													checked={showExactChange}
-													onCheckedChange={setShowExactChange}
-													aria-label='Alternar entre troco exato e sugerido'
-												/>
-												<span className='text-sm'>Sugerido</span>
+										{toCents(customerContribution) > 0 && (
+											<div className='space-y-2'>
+												<p className='text-sm text-muted-foreground'>
+													Cliente Ajudou
+												</p>
+												<p className='text-xl font-semibold text-green-600'>
+													{formatCurrency(toCents(customerContribution))}
+												</p>
 											</div>
-										</div>
-
-										{showExactChange ? (
-											<>
-												<p
-													className='text-2xl font-bold text-primary text-center mb-4'
-													aria-live='polite'
-												>
-													{formatCurrency(changeResult.exact.cents)}
-												</p>
-												{changeResult.difference > 0 && (
-													<p className='text-sm text-muted-foreground text-center mb-4'>
-														Diferença de{' '}
-														{formatCurrency(changeResult.difference * 100)}
-													</p>
-												)}
-											</>
-										) : (
-											<>
-												<p
-													className='text-2xl font-bold text-primary text-center mb-4'
-													aria-live='polite'
-												>
-													{formatCurrency(changeResult.suggested.cents)}
-												</p>
-												{changeResult.difference > 0 && (
-													<p className='text-sm text-muted-foreground text-center mb-4'>
-														Arredondado de{' '}
-														{formatCurrency(changeResult.exact.cents)}{' '}
-														(tolerância de{' '}
-														{formatCurrency(changeResult.difference * 100)})
-													</p>
-												)}
-											</>
 										)}
 
-										{(showExactChange
-											? changeResult.exact.cents
-											: changeResult.suggested.cents) > 0 ? (
-											<div className='mt-4 space-y-2'>
-												<p className='text-sm font-medium'>
-													{showExactChange ? 'Troco exato:' : 'Troco sugerido:'}
-												</p>
-												<div className='space-y-2 max-h-60 overflow-y-auto'>
-													{(showExactChange
-														? changeResult.exact.breakdown
-														: changeResult.suggested.breakdown
-													).map((item, index) => (
-														<div
-															key={index}
-															className='flex items-center justify-between p-3 bg-card border rounded-lg animate-in fade-in slide-in-from-left-2 duration-300'
-															style={{ animationDelay: `${index * 50}ms` }}
-														>
-															<span className='font-medium'>
-																{item.denomination.label}
-															</span>
-															<Badge variant='secondary' className='text-lg'>
-																{item.count}
-															</Badge>
-														</div>
-													))}
+										<div className='glassmorphism p-4 rounded-xl'>
+											<div className='flex justify-between items-center mb-4'>
+												<p className='font-medium text-foreground'>Troco</p>
+												<div className='flex items-center space-x-2'>
+													<span className='text-sm text-muted-foreground'>
+														Exato
+													</span>
+													<Switch
+														checked={showExactChange}
+														onCheckedChange={setShowExactChange}
+														aria-label='Alternar entre troco exato e sugerido'
+													/>
+													<span className='text-sm text-muted-foreground'>
+														Sugerido
+													</span>
 												</div>
 											</div>
-										) : (
-											<div className='mt-4 text-center py-4'>
-												<p className='text-muted-foreground'>
-													{(showExactChange
-														? changeResult.exact.cents
-														: changeResult.suggested.cents) === 0
-														? 'Valor exato! Não há troco.'
-														: 'Não foi possível calcular o troco.'}
-												</p>
-											</div>
-										)}
+
+											{showExactChange ? (
+												<>
+													<p
+														className='kinetic-text text-3xl font-bold text-center mb-4'
+														aria-live='polite'
+													>
+														{formatCurrency(changeResult.exact.cents)}
+													</p>
+													{changeResult.difference > 0 && (
+														<p className='text-sm text-muted-foreground text-center mb-4'>
+															Diferença de{' '}
+															{formatCurrency(changeResult.difference * 100)}
+														</p>
+													)}
+												</>
+											) : (
+												<>
+													<p
+														className='kinetic-text text-3xl font-bold text-center mb-4'
+														aria-live='polite'
+													>
+														{formatCurrency(changeResult.suggested.cents)}
+													</p>
+													{changeResult.difference > 0 && (
+														<p className='text-sm text-muted-foreground text-center mb-4'>
+															Arredondado de{' '}
+															{formatCurrency(changeResult.exact.cents)}{' '}
+															(tolerância de{' '}
+															{formatCurrency(changeResult.difference * 100)})
+														</p>
+													)}
+												</>
+											)}
+
+											{(showExactChange
+												? changeResult.exact.cents
+												: changeResult.suggested.cents) > 0 ? (
+												<div className='mt-4 space-y-3'>
+													<p className='text-sm font-medium text-foreground'>
+														{showExactChange
+															? 'Troco exato:'
+															: 'Troco sugerido:'}
+													</p>
+													<div className='space-y-2 max-h-60 overflow-y-auto'>
+														{(showExactChange
+															? changeResult.exact.breakdown
+															: changeResult.suggested.breakdown
+														).map((item, index) => (
+															<div
+																key={index}
+																className='flex items-center justify-between p-3 glassmorphism rounded-lg animate-in fade-in slide-in-from-left-2 duration-300'
+																style={{ animationDelay: `${index * 50}ms` }}
+															>
+																<span className='font-medium text-foreground'>
+																	{item.denomination.label}
+																</span>
+																<Badge
+																	variant='secondary'
+																	className='text-lg neumorphism'
+																>
+																	{item.count}
+																</Badge>
+															</div>
+														))}
+													</div>
+												</div>
+											) : (
+												<div className='mt-4 text-center py-4 glassmorphism rounded-xl'>
+													<p className='text-muted-foreground'>
+														{(showExactChange
+															? changeResult.exact.cents
+															: changeResult.suggested.cents) === 0
+															? 'Valor exato! Não há troco.'
+															: 'Não foi possível calcular o troco.'}
+													</p>
+												</div>
+											)}
+										</div>
 									</div>
-								</CardContent>
-							</Card>
-						</div>
-					)}
+								</div>
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
 		</ProtectedRoute>
