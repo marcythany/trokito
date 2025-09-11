@@ -2,8 +2,13 @@ const CACHE_NAME = 'trokito-v1';
 const STATIC_CACHE = 'trokito-static-v1';
 
 // Arquivos para cache offline
-// Currently only caching the root route since other pages don't exist yet
-const STATIC_ASSETS = ['/', '/manifest.json', '/favicon.ico'];
+const STATIC_ASSETS = [
+	'/',
+	'/troco',
+	'/fechamento',
+	'/manifest.json',
+	'/favicon.ico',
+];
 
 // Install event - cache static assets
 self.addEventListener('install', (event) => {
