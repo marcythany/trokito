@@ -135,22 +135,20 @@ export default function ChangeCalculator() {
 			suggestedChangeCents = roundToNearest5Cents(exactChangeCents);
 		} else {
 			// Basic calculation without payment amount
-			// In this case, we calculate what change is needed based on customer contribution
-			if (contributionCents <= 0) {
-				setError(
-					'Para cálculo sem valor pago, informe quanto o cliente ajudou'
-				);
-				return;
+			if (contributionCents > 0) {
+				// If customer contributed, calculate change needed
+				if (contributionCents < totalCents) {
+					setError('Valor ajudado insuficiente para cobrir o total');
+					return;
+				}
+				exactChangeCents = contributionCents - totalCents;
+				suggestedChangeCents = roundToNearest5Cents(exactChangeCents);
+			} else {
+				// No contribution provided - cannot calculate change
+				// This is a valid scenario where the operator needs to handle change manually
+				exactChangeCents = 0;
+				suggestedChangeCents = 0;
 			}
-
-			if (contributionCents < totalCents) {
-				setError('Valor ajudado insuficiente para cobrir o total');
-				return;
-			}
-
-			// Calculate change needed (contribution - total)
-			exactChangeCents = contributionCents - totalCents;
-			suggestedChangeCents = roundToNearest5Cents(exactChangeCents);
 		}
 
 		// Check if difference is within tolerance (4 cents)
@@ -283,6 +281,19 @@ export default function ChangeCalculator() {
 								<p className='text-sm text-muted-foreground'>
 									Calcule o troco de forma rápida e otimizada
 								</p>
+								<div className='mt-2 text-xs text-muted-foreground'>
+									{toCents(payment) > 0 ? (
+										<span className='inline-flex items-center gap-1'>
+											<span className='w-2 h-2 bg-green-500 rounded-full'></span>
+											Modo tradicional (com valor pago)
+										</span>
+									) : (
+										<span className='inline-flex items-center gap-1'>
+											<span className='w-2 h-2 bg-blue-500 rounded-full'></span>
+											Modo básico (sem valor pago)
+										</span>
+									)}
+								</div>
 							</CardHeader>
 							<CardContent>
 								<form onSubmit={handleSubmit} className='space-y-4'>
@@ -352,8 +363,9 @@ export default function ChangeCalculator() {
 											id='contribution-help'
 											className='text-xs text-muted-foreground'
 										>
-											Valor que o cliente ajudou com moedas/notas menores
-											(opcional)
+											{toCents(payment) > 0
+												? 'Valor que o cliente ajudou com moedas/notas menores (opcional)'
+												: 'Quanto o cliente ajudou para calcular o troco necessário (opcional)'}
 										</p>
 									</div>
 
@@ -507,7 +519,9 @@ export default function ChangeCalculator() {
 													{(showExactChange
 														? changeResult.exact.cents
 														: changeResult.suggested.cents) === 0
-														? 'Valor exato! Não há troco.'
+														? toCents(payment) > 0
+															? 'Valor exato! Não há troco.'
+															: 'Cálculo registrado. Troco deve ser fornecido manualmente.'
 														: 'Não foi possível calcular o troco.'}
 												</p>
 											</div>
