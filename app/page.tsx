@@ -121,7 +121,7 @@ export default function HomePage() {
 								>
 									<Button
 										variant='ghost'
-										className='w-full h-full p-6 flex flex-col items-center gap-4 text-center touch-target focus-ring'
+										className='w-full h-full p-6 flex flex-col items-center gap-4 text-center touch-target focus-ring mobile-tap mobile-optimized'
 										onClick={() => (window.location.href = item.href)}
 										aria-label={`${item.title}: ${item.description}`}
 									>

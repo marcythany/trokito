@@ -232,7 +232,7 @@ export default function ChangeCalculator() {
 								<Link href='/'>
 									<Button
 										variant='ghost'
-										className='neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
+										className='neumorphism focus-ring mobile-tap touch-target'
 										aria-label='Voltar para a página inicial'
 									>
 										<ArrowLeft className='mr-2 h-4 w-4' aria-hidden='true' />
@@ -285,7 +285,7 @@ export default function ChangeCalculator() {
 											value={pdvChange}
 											onChange={handlePdvChange}
 											placeholder='R$ 0,00'
-											className='text-lg neumorphism-inset focus-ring'
+											className='text-lg neumorphism-inset focus-ring mobile-optimized'
 											aria-describedby='pdv-help'
 										/>
 										<p id='pdv-help' className='text-xs text-muted-foreground'>
@@ -307,7 +307,7 @@ export default function ChangeCalculator() {
 											value={customerContribution}
 											onChange={handleCustomerContributionChange}
 											placeholder='R$ 0,00'
-											className='text-lg neumorphism-inset focus-ring'
+											className='text-lg neumorphism-inset focus-ring mobile-optimized'
 											aria-describedby='contribution-help'
 										/>
 										<p
@@ -332,7 +332,7 @@ export default function ChangeCalculator() {
 									<div className='flex gap-3 pt-2'>
 										<Button
 											type='submit'
-											className='flex-1 neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
+											className='flex-1 neumorphism focus-ring mobile-tap touch-target'
 										>
 											Calcular Troco
 										</Button>
@@ -340,7 +340,7 @@ export default function ChangeCalculator() {
 											type='button'
 											variant='outline'
 											onClick={resetForm}
-											className='neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
+											className='neumorphism focus-ring mobile-tap touch-target'
 										>
 											Limpar
 										</Button>

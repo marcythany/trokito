@@ -132,8 +132,8 @@ export default function LoginPage() {
 						</p>
 					</div>
 
-					{/* Main login card with glassmorphism - 2025 trend */}
-					<div className='bento-item glassmorphism neumorphism'>
+					{/* Main login card with mobile-optimized glassmorphism */}
+					<div className='bento-item glassmorphism neumorphism mobile-optimized'>
 						<div className='text-center mb-6'>
 							<h2
 								className='text-2xl font-semibold text-foreground'
@@ -169,7 +169,7 @@ export default function LoginPage() {
 										value={username}
 										onChange={(e) => setUsername(e.target.value)}
 										placeholder='Seu nome'
-										className='text-lg h-12 neumorphism-inset focus-ring'
+										className='text-lg h-12 neumorphism-inset focus-ring mobile-optimized'
 										aria-describedby='username-help'
 									/>
 									<p
@@ -185,7 +185,7 @@ export default function LoginPage() {
 									<div className='space-y-2'>
 										<Button
 											onClick={handleWebAuthnRegister}
-											className='w-full h-12 neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
+											className='w-full h-12 neumorphism focus-ring mobile-tap touch-target'
 											aria-describedby='webauthn-register-help'
 										>
 											Registrar com Biometria/PIN do Sistema
@@ -230,7 +230,7 @@ export default function LoginPage() {
 										value={pin}
 										onChange={(e) => setPin(e.target.value)}
 										placeholder='****'
-										className='text-lg h-12 neumorphism-inset focus-ring'
+										className='text-lg h-12 neumorphism-inset focus-ring mobile-optimized'
 										maxLength={6}
 										aria-describedby='pin-help'
 									/>
@@ -242,7 +242,7 @@ export default function LoginPage() {
 								<Button
 									onClick={handleSetPIN}
 									variant='outline'
-									className='w-full h-12 neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
+									className='w-full h-12 neumorphism focus-ring mobile-tap touch-target'
 									aria-describedby='set-pin-help'
 								>
 									Configurar PIN
@@ -261,7 +261,7 @@ export default function LoginPage() {
 									<div className='space-y-2'>
 										<Button
 											onClick={handleWebAuthnLogin}
-											className='w-full h-12 neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
+											className='w-full h-12 neumorphism focus-ring mobile-tap touch-target'
 											aria-describedby='webauthn-login-help'
 										>
 											Entrar com Biometria/PIN do Sistema
@@ -298,7 +298,7 @@ export default function LoginPage() {
 										value={pin}
 										onChange={(e) => setPin(e.target.value)}
 										placeholder='****'
-										className='text-lg h-12 neumorphism-inset focus-ring'
+										className='text-lg h-12 neumorphism-inset focus-ring mobile-optimized'
 										maxLength={6}
 										aria-describedby='login-pin-help'
 									/>
@@ -313,7 +313,7 @@ export default function LoginPage() {
 								<Button
 									onClick={handlePINLogin}
 									variant='outline'
-									className='w-full h-12 neumorphism focus-ring hover:transform hover:scale-105 transition-all duration-200'
+									className='w-full h-12 neumorphism focus-ring mobile-tap touch-target'
 								>
 									Entrar com PIN
 								</Button>
@@ -328,7 +328,7 @@ export default function LoginPage() {
 									setIsRegistering(!isRegistering);
 									setError('');
 								}}
-								className='text-sm focus-ring hover:text-primary transition-colors duration-200'
+								className='text-sm focus-ring mobile-tap touch-target'
 							>
 								{isRegistering
 									? 'Já tem uma conta? Faça login'
