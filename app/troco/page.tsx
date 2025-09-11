@@ -29,8 +29,7 @@ const DENOMINATIONS = [
 ];
 
 export default function ChangeCalculator() {
-	const [total, setTotal] = useState<string>('');
-	const [payment, setPayment] = useState<string>('');
+	const [pdvChange, setPdvChange] = useState<string>('');
 	const [customerContribution, setCustomerContribution] = useState<string>('');
 	const [showExactChange, setShowExactChange] = useState<boolean>(false);
 	const [changeResult, setChangeResult] = useState<{
@@ -101,55 +100,26 @@ export default function ChangeCalculator() {
 		setError('');
 		setHasCalculated(false);
 
-		const totalCents = toCents(total);
-		const paymentCents = toCents(payment);
+		const pdvChangeCents = toCents(pdvChange);
 		const contributionCents = toCents(customerContribution);
 
 		// Validate inputs
-		if (totalCents <= 0) {
-			setError('Valor total inválido');
+		if (pdvChangeCents <= 0) {
+			setError('Valor do troco do PDV inválido');
 			return;
 		}
 
-		// Check if we have payment amount (traditional calculation)
-		const hasPayment = paymentCents > 0;
-		let exactChangeCents: number;
-		let suggestedChangeCents: number;
-
-		if (hasPayment) {
-			// Traditional calculation with payment amount
-			if (contributionCents > paymentCents) {
-				setError('Valor ajudado não pode ser maior que o valor pago');
-				return;
-			}
-
-			// Calculate exact change (payment - total - customer contribution)
-			exactChangeCents = paymentCents - totalCents - contributionCents;
-
-			if (exactChangeCents < 0) {
-				setError('Valor pago insuficiente (considerando ajuda do cliente)');
-				return;
-			}
-
-			// Calculate suggested change (rounded to nearest 5 cents)
-			suggestedChangeCents = roundToNearest5Cents(exactChangeCents);
-		} else {
-			// Basic calculation without payment amount
-			if (contributionCents > 0) {
-				// If customer contributed, calculate change needed
-				if (contributionCents < totalCents) {
-					setError('Valor ajudado insuficiente para cobrir o total');
-					return;
-				}
-				exactChangeCents = contributionCents - totalCents;
-				suggestedChangeCents = roundToNearest5Cents(exactChangeCents);
-			} else {
-				// No contribution provided - cannot calculate change
-				// This is a valid scenario where the operator needs to handle change manually
-				exactChangeCents = 0;
-				suggestedChangeCents = 0;
-			}
+		// Validate customer contribution doesn't exceed PDV change
+		if (contributionCents > pdvChangeCents) {
+			setError('Valor ajudado não pode ser maior que o troco do PDV');
+			return;
 		}
+
+		// Calculate actual change to give (PDV change - customer contribution)
+		const exactChangeCents = pdvChangeCents - contributionCents;
+
+		// Calculate suggested change (rounded to nearest 5 cents)
+		const suggestedChangeCents = roundToNearest5Cents(exactChangeCents);
 
 		// Check if difference is within tolerance (4 cents)
 		const difference = Math.abs(exactChangeCents - suggestedChangeCents);
@@ -181,8 +151,8 @@ export default function ChangeCalculator() {
 		try {
 			await db.addCalculation({
 				date: new Date(),
-				total: totalCents,
-				payment: hasPayment ? paymentCents : 0,
+				total: 0, // Not used in PDV mode
+				payment: pdvChangeCents, // Store PDV change as payment for compatibility
 				customerContribution: contributionCents,
 				change: suggestedChangeCents,
 				breakdown: suggestedBreakdown,
@@ -196,8 +166,7 @@ export default function ChangeCalculator() {
 
 	// Reset form
 	const resetForm = () => {
-		setTotal('');
-		setPayment('');
+		setPdvChange('');
 		setCustomerContribution('');
 		setChangeResult(null);
 		setError('');
@@ -223,16 +192,10 @@ export default function ChangeCalculator() {
 		return cleanValue ? `R$ ${cleanValue}` : '';
 	};
 
-	// Handle total input change
-	const handleTotalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	// Handle PDV change input change
+	const handlePdvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const formatted = formatInput(e.target.value);
-		setTotal(formatted);
-	};
-
-	// Handle payment input change
-	const handlePaymentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const formatted = formatInput(e.target.value);
-		setPayment(formatted);
+		setPdvChange(formatted);
 	};
 
 	// Handle customer contribution input change
@@ -279,66 +242,33 @@ export default function ChangeCalculator() {
 									Calculadora de Troco
 								</CardTitle>
 								<p className='text-sm text-muted-foreground'>
-									Calcule o troco de forma rápida e otimizada
+									Calcule o troco considerando a contribuição do cliente
 								</p>
 								<div className='mt-2 text-xs text-muted-foreground'>
-									{toCents(payment) > 0 ? (
-										<span className='inline-flex items-center gap-1'>
-											<span className='w-2 h-2 bg-green-500 rounded-full'></span>
-											Modo tradicional (com valor pago)
-										</span>
-									) : (
-										<span className='inline-flex items-center gap-1'>
-											<span className='w-2 h-2 bg-blue-500 rounded-full'></span>
-											Modo básico (sem valor pago)
-										</span>
-									)}
+									<span className='inline-flex items-center gap-1'>
+										<span className='w-2 h-2 bg-green-500 rounded-full'></span>
+										Integração PDV
+									</span>
 								</div>
 							</CardHeader>
 							<CardContent>
 								<form onSubmit={handleSubmit} className='space-y-4'>
 									<div className='space-y-2'>
-										<label htmlFor='total' className='text-sm font-medium'>
-											Valor Total (R$)
+										<label htmlFor='pdvChange' className='text-sm font-medium'>
+											Valor do Troco do PDV (R$)
 										</label>
 										<Input
-											id='total'
+											id='pdvChange'
 											type='text'
 											inputMode='decimal'
-											value={total}
-											onChange={handleTotalChange}
+											value={pdvChange}
+											onChange={handlePdvChange}
 											placeholder='R$ 0,00'
 											className='text-lg'
-											aria-describedby='total-help'
+											aria-describedby='pdv-help'
 										/>
-										<p
-											id='total-help'
-											className='text-xs text-muted-foreground'
-										>
-											Digite o valor total da compra
-										</p>
-									</div>
-
-									<div className='space-y-2'>
-										<label htmlFor='payment' className='text-sm font-medium'>
-											Valor Pago (R$) - Opcional
-										</label>
-										<Input
-											id='payment'
-											type='text'
-											inputMode='decimal'
-											value={payment}
-											onChange={handlePaymentChange}
-											placeholder='R$ 0,00'
-											className='text-lg'
-											aria-describedby='payment-help'
-										/>
-										<p
-											id='payment-help'
-											className='text-xs text-muted-foreground'
-										>
-											Use apenas se quiser incluir uma contribuição do cliente
-											no cálculo
+										<p id='pdv-help' className='text-xs text-muted-foreground'>
+											Valor do troco calculado pelo sistema PDV
 										</p>
 									</div>
 
@@ -363,9 +293,8 @@ export default function ChangeCalculator() {
 											id='contribution-help'
 											className='text-xs text-muted-foreground'
 										>
-											{toCents(payment) > 0
-												? 'Valor que o cliente ajudou com moedas/notas menores (opcional)'
-												: 'Quanto o cliente ajudou para calcular o troco necessário (opcional)'}
+											Valor que o cliente ajudou com moedas/notas menores
+											(opcional)
 										</p>
 									</div>
 
@@ -407,25 +336,13 @@ export default function ChangeCalculator() {
 									<CardTitle>Resultado</CardTitle>
 								</CardHeader>
 								<CardContent className='space-y-4'>
-									<div
-										className={`grid gap-4 ${
-											toCents(payment) > 0 ? 'grid-cols-2' : 'grid-cols-1'
-										}`}
-									>
-										<div className='space-y-1'>
-											<p className='text-sm text-muted-foreground'>Total</p>
-											<p className='text-lg font-semibold'>
-												{formatCurrency(toCents(total))}
-											</p>
-										</div>
-										{toCents(payment) > 0 && (
-											<div className='space-y-1'>
-												<p className='text-sm text-muted-foreground'>Pago</p>
-												<p className='text-lg font-semibold'>
-													{formatCurrency(toCents(payment))}
-												</p>
-											</div>
-										)}
+									<div className='space-y-1'>
+										<p className='text-sm text-muted-foreground'>
+											Troco do PDV
+										</p>
+										<p className='text-lg font-semibold'>
+											{formatCurrency(toCents(pdvChange))}
+										</p>
 									</div>
 									{toCents(customerContribution) > 0 && (
 										<div className='space-y-1'>
@@ -519,9 +436,7 @@ export default function ChangeCalculator() {
 													{(showExactChange
 														? changeResult.exact.cents
 														: changeResult.suggested.cents) === 0
-														? toCents(payment) > 0
-															? 'Valor exato! Não há troco.'
-															: 'Cálculo registrado. Troco deve ser fornecido manualmente.'
+														? 'Valor exato! Não há troco.'
 														: 'Não foi possível calcular o troco.'}
 												</p>
 											</div>
