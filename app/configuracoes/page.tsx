@@ -12,113 +12,66 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { ArrowLeft, Settings } from 'lucide-react';
+import { db } from '@/lib/db';
+import { ArrowLeft, Download, Settings, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
-
-interface Settings {
-	theme: 'light' | 'dark' | 'system';
-	fontSize: 'small' | 'medium' | 'large';
-	reducedMotion: boolean;
-	highContrast: boolean;
-	autoSave: boolean;
-}
-
-const SETTINGS_KEY = 'trokito-settings';
+import { useRef } from 'react';
+import { useSettings, type Settings } from '@/lib/use-settings';
 
 export default function SettingsPage() {
-	const [settings, setSettings] = useState<Settings>({
-		theme: 'system',
-		fontSize: 'medium',
-		reducedMotion: false,
-		highContrast: false,
-		autoSave: true,
-	});
+	const { settings, saveSettings, resetSettings } = useSettings();
 	const mainHeadingRef = useRef<HTMLHeadingElement>(null);
 
-	useEffect(() => {
-		if (mainHeadingRef.current) {
-			mainHeadingRef.current.focus();
-		}
-		loadSettings();
-	}, []);
-
-	const loadSettings = () => {
-		try {
-			const saved = localStorage.getItem(SETTINGS_KEY);
-			if (saved) {
-				const parsedSettings = JSON.parse(saved);
-				setSettings({ ...settings, ...parsedSettings });
-				applySettings(parsedSettings);
-			}
-		} catch (error) {
-			console.error('Erro ao carregar configurações:', error);
-		}
-	};
-
-	const saveSettings = (newSettings: Partial<Settings>) => {
-		try {
-			const updatedSettings = { ...settings, ...newSettings };
-			setSettings(updatedSettings);
-			localStorage.setItem(SETTINGS_KEY, JSON.stringify(updatedSettings));
-			applySettings(updatedSettings);
-		} catch (error) {
-			console.error('Erro ao salvar configurações:', error);
-		}
-	};
-
-	const applySettings = (settings: Settings) => {
-		// Apply theme
-		const root = document.documentElement;
-		const prefersDark = window.matchMedia(
-			'(prefers-color-scheme: dark)'
-		).matches;
-
+	const clearHistory = async () => {
 		if (
-			settings.theme === 'dark' ||
-			(settings.theme === 'system' && prefersDark)
+			confirm(
+				'Tem certeza que deseja limpar todo o histórico? Esta ação não pode ser desfeita.'
+			)
 		) {
-			root.classList.add('dark');
-		} else {
-			root.classList.remove('dark');
-		}
+			try {
+				// Clear calculations
+				const calculations = await db.getAllCalculations();
+				for (const calc of calculations) {
+					if (calc.id) {
+						await db.deleteCalculation(calc.id);
+					}
+				}
 
-		// Apply font size
-		root.classList.remove('text-small', 'text-medium', 'text-large');
-		root.classList.add(`text-${settings.fontSize}`);
+				// Clear closings
+				const closings = await db.getAllClosings();
+				for (const closing of closings) {
+					if (closing.id) {
+						await db.deleteClosing(closing.id);
+					}
+				}
 
-		// Apply reduced motion
-		const prefersReducedMotion = window.matchMedia(
-			'(prefers-reduced-motion: reduce)'
-		).matches;
-		if (settings.reducedMotion || prefersReducedMotion) {
-			root.style.setProperty('--motion-duration', '0s');
-			root.classList.add('motion-reduce');
-		} else {
-			root.style.removeProperty('--motion-duration');
-			root.classList.remove('motion-reduce');
-		}
-
-		// Apply high contrast
-		if (settings.highContrast) {
-			root.classList.add('high-contrast');
-		} else {
-			root.classList.remove('high-contrast');
+				alert('Histórico limpo com sucesso!');
+			} catch (error) {
+				console.error('Erro ao limpar histórico:', error);
+				alert('Erro ao limpar histórico. Tente novamente.');
+			}
 		}
 	};
 
-	const resetSettings = () => {
-		if (confirm('Tem certeza que deseja restaurar as configurações padrão?')) {
-			const defaultSettings: Settings = {
-				theme: 'system',
-				fontSize: 'medium',
-				reducedMotion: false,
-				highContrast: false,
-				autoSave: true,
-			};
-			setSettings(defaultSettings);
-			localStorage.removeItem(SETTINGS_KEY);
-			applySettings(defaultSettings);
+	const exportHistory = async () => {
+		try {
+			const csv = await db.exportToCSV();
+			const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement('a');
+			link.setAttribute('href', url);
+			link.setAttribute(
+				'download',
+				`historico_trokito_${new Date().toISOString().split('T')[0]}.csv`
+			);
+			link.style.visibility = 'hidden';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			alert('Histórico exportado com sucesso!');
+		} catch (error) {
+			console.error('Erro ao exportar histórico:', error);
+			alert('Erro ao exportar histórico. Tente novamente.');
 		}
 	};
 
@@ -155,8 +108,13 @@ export default function SettingsPage() {
 									Personalize sua experiência no Trokito
 								</p>
 							</CardHeader>
-							<CardContent className='space-y-6'>
+							<CardContent className='space-y-8'>
+								{/* Interface Settings */}
 								<div className='space-y-4'>
+									<h3 className='text-lg font-medium border-b pb-2'>
+										Interface
+									</h3>
+
 									<div className='space-y-2'>
 										<Label htmlFor='theme'>Tema</Label>
 										<Select
@@ -201,6 +159,29 @@ export default function SettingsPage() {
 										</p>
 									</div>
 
+									<div className='space-y-2'>
+										<Label htmlFor='language'>Idioma</Label>
+										<Select
+											value={settings.language}
+											onValueChange={(value: Settings['language']) =>
+												saveSettings({ language: value })
+											}
+										>
+											<SelectTrigger id='language'>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value='pt-BR'>
+													Português (Brasil)
+												</SelectItem>
+												<SelectItem value='en-US'>English (US)</SelectItem>
+											</SelectContent>
+										</Select>
+										<p className='text-xs text-muted-foreground'>
+											Idioma da interface do aplicativo
+										</p>
+									</div>
+
 									<div className='flex items-center justify-between'>
 										<div className='space-y-0.5'>
 											<Label htmlFor='reducedMotion'>
@@ -234,6 +215,38 @@ export default function SettingsPage() {
 											}
 										/>
 									</div>
+								</div>
+
+								{/* PDV Settings */}
+								<div className='space-y-4'>
+									<h3 className='text-lg font-medium border-b pb-2'>
+										Sistema PDV
+									</h3>
+
+									<div className='space-y-2'>
+										<Label htmlFor='calculationMode'>
+											Modo de Cálculo Padrão
+										</Label>
+										<Select
+											value={settings.defaultCalculationMode}
+											onValueChange={(
+												value: Settings['defaultCalculationMode']
+											) => saveSettings({ defaultCalculationMode: value })}
+										>
+											<SelectTrigger id='calculationMode'>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value='exact'>Troco Exato</SelectItem>
+												<SelectItem value='suggested'>
+													Troco Sugerido (Arredondado)
+												</SelectItem>
+											</SelectContent>
+										</Select>
+										<p className='text-xs text-muted-foreground'>
+											Modo padrão para cálculo de troco
+										</p>
+									</div>
 
 									<div className='flex items-center justify-between'>
 										<div className='space-y-0.5'>
@@ -252,14 +265,89 @@ export default function SettingsPage() {
 									</div>
 								</div>
 
-								<div className='border-t pt-4'>
-									<Button
-										onClick={resetSettings}
-										variant='outline'
-										className='w-full focus:ring-2 focus:ring-primary focus:ring-offset-2'
-									>
-										Restaurar Padrões
-									</Button>
+								{/* History Settings */}
+								<div className='space-y-4'>
+									<h3 className='text-lg font-medium border-b pb-2'>
+										Histórico
+									</h3>
+
+									<div className='space-y-2'>
+										<Label htmlFor='maxHistory'>
+											Máximo de Itens no Histórico
+										</Label>
+										<Select
+											value={settings.maxHistoryItems.toString()}
+											onValueChange={(value) =>
+												saveSettings({ maxHistoryItems: parseInt(value) })
+											}
+										>
+											<SelectTrigger id='maxHistory'>
+												<SelectValue />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value='50'>50 itens</SelectItem>
+												<SelectItem value='100'>100 itens</SelectItem>
+												<SelectItem value='200'>200 itens</SelectItem>
+												<SelectItem value='500'>500 itens</SelectItem>
+											</SelectContent>
+										</Select>
+										<p className='text-xs text-muted-foreground'>
+											Número máximo de registros mantidos no histórico
+										</p>
+									</div>
+
+									<div className='flex items-center justify-between'>
+										<div className='space-y-0.5'>
+											<Label htmlFor='autoExport'>Exportação Automática</Label>
+											<p className='text-xs text-muted-foreground'>
+												Exporta automaticamente o histórico quando atingir o
+												limite
+											</p>
+										</div>
+										<Switch
+											id='autoExport'
+											checked={settings.autoExportHistory}
+											onCheckedChange={(checked) =>
+												saveSettings({ autoExportHistory: checked })
+											}
+										/>
+									</div>
+								</div>
+
+								{/* History Management */}
+								<div className='space-y-4'>
+									<h3 className='text-lg font-medium border-b pb-2'>
+										Gerenciamento de Dados
+									</h3>
+
+									<div className='grid gap-3 sm:grid-cols-2'>
+										<Button
+											onClick={exportHistory}
+											variant='outline'
+											className='flex items-center gap-2 focus:ring-2 focus:ring-primary focus:ring-offset-2'
+										>
+											<Download className='h-4 w-4' />
+											Exportar Histórico
+										</Button>
+										<Button
+											onClick={clearHistory}
+											variant='destructive'
+											className='flex items-center gap-2 focus:ring-2 focus:ring-destructive focus:ring-offset-2'
+										>
+											<Trash2 className='h-4 w-4' />
+											Limpar Histórico
+										</Button>
+									</div>
+
+									<div className='border-t pt-4'>
+										<Button
+											onClick={resetSettings}
+											variant='outline'
+											className='w-full focus:ring-2 focus:ring-primary focus:ring-offset-2'
+										>
+											Restaurar Configurações Padrão
+										</Button>
+									</div>
 								</div>
 
 								<div className='text-center text-xs text-muted-foreground'>
