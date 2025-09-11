@@ -2,22 +2,19 @@ import { expect, test } from '../fixtures/trokito-fixture';
 import { FormHelpers } from '../helpers/form-helpers';
 import { NavigationHelpers } from '../helpers/navigation-helpers';
 import { SnapshotUtils } from '../utils/snapshot-utils';
-import { WaitUtils } from '../utils/wait-utils';
 
 test.describe('UI/UX Analysis - Trokito Financial Calculator', () => {
 	let snapshotUtils: SnapshotUtils;
-	let waitUtils: WaitUtils;
 	let navHelpers: NavigationHelpers;
 	let formHelpers: FormHelpers;
 
 	test.beforeEach(async ({ page }) => {
 		snapshotUtils = new SnapshotUtils(page);
-		waitUtils = new WaitUtils(page);
 		navHelpers = new NavigationHelpers(page);
 		formHelpers = new FormHelpers(page);
 	});
 
-	test('Complete user journey analysis', async ({ trokitoPage }) => {
+	test('Complete user journey analysis', async ({}) => {
 		// 1. Initial page load
 		await snapshotUtils.takeScreenshot('01-home-page-initial');
 
@@ -90,19 +87,15 @@ test.describe('UI/UX Analysis - Trokito Financial Calculator', () => {
 		]);
 
 		// 9. Performance analysis
-		const performanceData =
-			await snapshotUtils.capturePerformanceWithScreenshot(
-				'performance-analysis'
-			);
+		await snapshotUtils.capturePerformanceWithScreenshot(
+			'performance-analysis'
+		);
 
 		// 10. Accessibility analysis
 		await snapshotUtils.takeAccessibilitySnapshot('accessibility-analysis');
 	});
 
-	test('Touch target and mobile usability analysis', async ({
-		trokitoPage,
-		page,
-	}) => {
+	test('Touch target and mobile usability analysis', async ({ page }) => {
 		// Set mobile viewport
 		await page.setViewportSize({ width: 375, height: 667 });
 
@@ -131,10 +124,7 @@ test.describe('UI/UX Analysis - Trokito Financial Calculator', () => {
 		await snapshotUtils.takeScreenshot('mobile-touch-targets');
 	});
 
-	test('Color contrast and visual hierarchy analysis', async ({
-		trokitoPage,
-		page,
-	}) => {
+	test('Color contrast and visual hierarchy analysis', async ({ page }) => {
 		// Analyze color usage
 		const colorAnalysis = await page.evaluate(() => {
 			const elements = document.querySelectorAll('*');
@@ -164,10 +154,7 @@ test.describe('UI/UX Analysis - Trokito Financial Calculator', () => {
 		await snapshotUtils.takeScreenshot('color-analysis');
 	});
 
-	test('Form validation and error handling analysis', async ({
-		trokitoPage,
-		page,
-	}) => {
+	test('Form validation and error handling analysis', async ({}) => {
 		// Navigate to calculator
 		await navHelpers.navigateMenu('/troco');
 
@@ -192,7 +179,7 @@ test.describe('UI/UX Analysis - Trokito Financial Calculator', () => {
 		}
 	});
 
-	test('Animation and transition analysis', async ({ trokitoPage, page }) => {
+	test('Animation and transition analysis', async ({ page }) => {
 		// Navigate to calculator
 		await navHelpers.navigateMenu('/troco');
 
@@ -230,7 +217,7 @@ test.describe('UI/UX Analysis - Trokito Financial Calculator', () => {
 		await snapshotUtils.takeScreenshot('animation-analysis');
 	});
 
-	test('Search integration for UI/UX research', async ({ page }) => {
+	test('Search integration for UI/UX research', async ({}) => {
 		// This test would integrate with search tools to research best practices
 		// For now, we'll simulate the research process
 
