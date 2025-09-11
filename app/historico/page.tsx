@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { db, type Calculation, type Closing } from '@/lib/db';
 import { ArrowLeft, Calculator, FileText, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 
 export default function HistoryPage() {
@@ -175,13 +174,19 @@ export default function HistoryPage() {
 																	<p className='text-sm text-muted-foreground'>
 																		{formatDate(calc.date)}
 																	</p>
-																	<div className='flex gap-4 text-sm'>
+																	<div
+																		className={`flex gap-4 text-sm ${
+																			calc.payment > 0 ? '' : 'flex-col'
+																		}`}
+																	>
 																		<span>
 																			Total: {formatCurrency(calc.total)}
 																		</span>
-																		<span>
-																			Pago: {formatCurrency(calc.payment)}
-																		</span>
+																		{calc.payment > 0 && (
+																			<span>
+																				Pago: {formatCurrency(calc.payment)}
+																			</span>
+																		)}
 																	</div>
 																	{calc.customerContribution > 0 && (
 																		<div className='flex gap-4 text-sm'>

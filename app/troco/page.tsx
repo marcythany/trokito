@@ -111,27 +111,47 @@ export default function ChangeCalculator() {
 			return;
 		}
 
-		if (paymentCents <= 0) {
-			setError('Valor pago inválido');
-			return;
+		// Check if we have payment amount (traditional calculation)
+		const hasPayment = paymentCents > 0;
+		let exactChangeCents: number;
+		let suggestedChangeCents: number;
+
+		if (hasPayment) {
+			// Traditional calculation with payment amount
+			if (contributionCents > paymentCents) {
+				setError('Valor ajudado não pode ser maior que o valor pago');
+				return;
+			}
+
+			// Calculate exact change (payment - total - customer contribution)
+			exactChangeCents = paymentCents - totalCents - contributionCents;
+
+			if (exactChangeCents < 0) {
+				setError('Valor pago insuficiente (considerando ajuda do cliente)');
+				return;
+			}
+
+			// Calculate suggested change (rounded to nearest 5 cents)
+			suggestedChangeCents = roundToNearest5Cents(exactChangeCents);
+		} else {
+			// Basic calculation without payment amount
+			// In this case, we calculate what change is needed based on customer contribution
+			if (contributionCents <= 0) {
+				setError(
+					'Para cálculo sem valor pago, informe quanto o cliente ajudou'
+				);
+				return;
+			}
+
+			if (contributionCents < totalCents) {
+				setError('Valor ajudado insuficiente para cobrir o total');
+				return;
+			}
+
+			// Calculate change needed (contribution - total)
+			exactChangeCents = contributionCents - totalCents;
+			suggestedChangeCents = roundToNearest5Cents(exactChangeCents);
 		}
-
-		// Validate customer contribution doesn't exceed payment
-		if (contributionCents > paymentCents) {
-			setError('Valor ajudado não pode ser maior que o valor pago');
-			return;
-		}
-
-		// Calculate exact change (payment - total - customer contribution)
-		const exactChangeCents = paymentCents - totalCents - contributionCents;
-
-		if (exactChangeCents < 0) {
-			setError('Valor pago insuficiente (considerando ajuda do cliente)');
-			return;
-		}
-
-		// Calculate suggested change (rounded to nearest 5 cents)
-		const suggestedChangeCents = roundToNearest5Cents(exactChangeCents);
 
 		// Check if difference is within tolerance (4 cents)
 		const difference = Math.abs(exactChangeCents - suggestedChangeCents);
@@ -164,7 +184,7 @@ export default function ChangeCalculator() {
 			await db.addCalculation({
 				date: new Date(),
 				total: totalCents,
-				payment: paymentCents,
+				payment: hasPayment ? paymentCents : 0,
 				customerContribution: contributionCents,
 				change: suggestedChangeCents,
 				breakdown: suggestedBreakdown,
@@ -290,7 +310,7 @@ export default function ChangeCalculator() {
 
 									<div className='space-y-2'>
 										<label htmlFor='payment' className='text-sm font-medium'>
-											Valor Pago (R$)
+											Valor Pago (R$) - Opcional
 										</label>
 										<Input
 											id='payment'
@@ -306,7 +326,8 @@ export default function ChangeCalculator() {
 											id='payment-help'
 											className='text-xs text-muted-foreground'
 										>
-											Digite o valor pago pelo cliente
+											Use apenas se quiser incluir uma contribuição do cliente
+											no cálculo
 										</p>
 									</div>
 
@@ -374,19 +395,25 @@ export default function ChangeCalculator() {
 									<CardTitle>Resultado</CardTitle>
 								</CardHeader>
 								<CardContent className='space-y-4'>
-									<div className='grid grid-cols-2 gap-4'>
+									<div
+										className={`grid gap-4 ${
+											toCents(payment) > 0 ? 'grid-cols-2' : 'grid-cols-1'
+										}`}
+									>
 										<div className='space-y-1'>
 											<p className='text-sm text-muted-foreground'>Total</p>
 											<p className='text-lg font-semibold'>
 												{formatCurrency(toCents(total))}
 											</p>
 										</div>
-										<div className='space-y-1'>
-											<p className='text-sm text-muted-foreground'>Pago</p>
-											<p className='text-lg font-semibold'>
-												{formatCurrency(toCents(payment))}
-											</p>
-										</div>
+										{toCents(payment) > 0 && (
+											<div className='space-y-1'>
+												<p className='text-sm text-muted-foreground'>Pago</p>
+												<p className='text-lg font-semibold'>
+													{formatCurrency(toCents(payment))}
+												</p>
+											</div>
+										)}
 									</div>
 									{toCents(customerContribution) > 0 && (
 										<div className='space-y-1'>
