@@ -119,7 +119,7 @@ export default function LoginPage() {
 				{/* Bento grid layout - 2025 trend */}
 				<div className='bento-grid gap-6'>
 					{/* Header section */}
-					<div className='bento-item col-span-1 md:col-span-2 lg:col-span-3 text-center'>
+					<div className='col-span-1 md:col-span-2 lg:col-span-3 text-center'>
 						<h1
 							ref={mainHeadingRef}
 							tabIndex={-1}
