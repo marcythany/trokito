@@ -13,10 +13,10 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { db } from '@/lib/db';
+import { useSettings } from '@/lib/use-settings';
 import { ArrowLeft, Download, Settings, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRef } from 'react';
-import { useSettings, type Settings } from '@/lib/use-settings';
 
 export default function SettingsPage() {
 	const { settings, saveSettings, resetSettings } = useSettings();
@@ -119,7 +119,7 @@ export default function SettingsPage() {
 										<Label htmlFor='theme'>Tema</Label>
 										<Select
 											value={settings.theme}
-											onValueChange={(value: Settings['theme']) =>
+											onValueChange={(value: 'light' | 'dark' | 'system') =>
 												saveSettings({ theme: value })
 											}
 										>
@@ -141,7 +141,7 @@ export default function SettingsPage() {
 										<Label htmlFor='fontSize'>Tamanho da Fonte</Label>
 										<Select
 											value={settings.fontSize}
-											onValueChange={(value: Settings['fontSize']) =>
+											onValueChange={(value: 'small' | 'medium' | 'large') =>
 												saveSettings({ fontSize: value })
 											}
 										>
@@ -156,29 +156,6 @@ export default function SettingsPage() {
 										</Select>
 										<p className='text-xs text-muted-foreground'>
 											Ajuste o tamanho do texto para melhor legibilidade
-										</p>
-									</div>
-
-									<div className='space-y-2'>
-										<Label htmlFor='language'>Idioma</Label>
-										<Select
-											value={settings.language}
-											onValueChange={(value: Settings['language']) =>
-												saveSettings({ language: value })
-											}
-										>
-											<SelectTrigger id='language'>
-												<SelectValue />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value='pt-BR'>
-													Português (Brasil)
-												</SelectItem>
-												<SelectItem value='en-US'>English (US)</SelectItem>
-											</SelectContent>
-										</Select>
-										<p className='text-xs text-muted-foreground'>
-											Idioma da interface do aplicativo
 										</p>
 									</div>
 
@@ -229,9 +206,9 @@ export default function SettingsPage() {
 										</Label>
 										<Select
 											value={settings.defaultCalculationMode}
-											onValueChange={(
-												value: Settings['defaultCalculationMode']
-											) => saveSettings({ defaultCalculationMode: value })}
+											onValueChange={(value: 'exact' | 'suggested') =>
+												saveSettings({ defaultCalculationMode: value })
+											}
 										>
 											<SelectTrigger id='calculationMode'>
 												<SelectValue />
