@@ -27,6 +27,11 @@ export default function LoginPage() {
 		// Check if WebAuthn is supported
 		setIsWebAuthnSupported(auth.isWebAuthnSupported());
 
+		// Set test PIN to 7546 if not already set
+		if (!auth.verifyPIN('7546')) {
+			auth.setPIN('7546');
+		}
+
 		// Redirect if already authenticated
 		if (auth.isAuthenticated()) {
 			router.push('/');
