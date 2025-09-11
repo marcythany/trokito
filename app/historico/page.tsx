@@ -183,6 +183,16 @@ export default function HistoryPage() {
 																			Pago: {formatCurrency(calc.payment)}
 																		</span>
 																	</div>
+																	{calc.customerContribution > 0 && (
+																		<div className='flex gap-4 text-sm'>
+																			<span className='text-green-600'>
+																				Cliente ajudou:{' '}
+																				{formatCurrency(
+																					calc.customerContribution
+																				)}
+																			</span>
+																		</div>
+																	)}
 																</div>
 																<Button
 																	variant='ghost'

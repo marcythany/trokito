@@ -16,6 +16,7 @@ export interface Calculation {
 	date: Date;
 	total: number;
 	payment: number;
+	customerContribution: number;
 	change: number;
 	breakdown: {
 		denomination: {

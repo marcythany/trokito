@@ -31,6 +31,7 @@ const DENOMINATIONS = [
 export default function ChangeCalculator() {
 	const [total, setTotal] = useState<string>('');
 	const [payment, setPayment] = useState<string>('');
+	const [customerContribution, setCustomerContribution] = useState<string>('');
 	const [showExactChange, setShowExactChange] = useState<boolean>(false);
 	const [changeResult, setChangeResult] = useState<{
 		exact: {
@@ -102,6 +103,7 @@ export default function ChangeCalculator() {
 
 		const totalCents = toCents(total);
 		const paymentCents = toCents(payment);
+		const contributionCents = toCents(customerContribution);
 
 		// Validate inputs
 		if (totalCents <= 0) {
@@ -114,11 +116,17 @@ export default function ChangeCalculator() {
 			return;
 		}
 
-		// Calculate exact change
-		const exactChangeCents = paymentCents - totalCents;
+		// Validate customer contribution doesn't exceed payment
+		if (contributionCents > paymentCents) {
+			setError('Valor ajudado não pode ser maior que o valor pago');
+			return;
+		}
+
+		// Calculate exact change (payment - total - customer contribution)
+		const exactChangeCents = paymentCents - totalCents - contributionCents;
 
 		if (exactChangeCents < 0) {
-			setError('Valor pago insuficiente');
+			setError('Valor pago insuficiente (considerando ajuda do cliente)');
 			return;
 		}
 
@@ -157,6 +165,7 @@ export default function ChangeCalculator() {
 				date: new Date(),
 				total: totalCents,
 				payment: paymentCents,
+				customerContribution: contributionCents,
 				change: suggestedChangeCents,
 				breakdown: suggestedBreakdown,
 			});
@@ -171,6 +180,7 @@ export default function ChangeCalculator() {
 	const resetForm = () => {
 		setTotal('');
 		setPayment('');
+		setCustomerContribution('');
 		setChangeResult(null);
 		setError('');
 		setHasCalculated(false);
@@ -205,6 +215,14 @@ export default function ChangeCalculator() {
 	const handlePaymentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const formatted = formatInput(e.target.value);
 		setPayment(formatted);
+	};
+
+	// Handle customer contribution input change
+	const handleCustomerContributionChange = (
+		e: React.ChangeEvent<HTMLInputElement>
+	) => {
+		const formatted = formatInput(e.target.value);
+		setCustomerContribution(formatted);
 	};
 
 	// Handle form submission
@@ -292,6 +310,32 @@ export default function ChangeCalculator() {
 										</p>
 									</div>
 
+									<div className='space-y-2'>
+										<label
+											htmlFor='customerContribution'
+											className='text-sm font-medium'
+										>
+											Valor Ajudado pelo Cliente (Opcional)
+										</label>
+										<Input
+											id='customerContribution'
+											type='text'
+											inputMode='decimal'
+											value={customerContribution}
+											onChange={handleCustomerContributionChange}
+											placeholder='R$ 0,00'
+											className='text-lg'
+											aria-describedby='contribution-help'
+										/>
+										<p
+											id='contribution-help'
+											className='text-xs text-muted-foreground'
+										>
+											Valor que o cliente ajudou com moedas/notas menores
+											(opcional)
+										</p>
+									</div>
+
 									{error && (
 										<div
 											className='text-sm text-destructive animate-in fade-in duration-300'
@@ -344,6 +388,16 @@ export default function ChangeCalculator() {
 											</p>
 										</div>
 									</div>
+									{toCents(customerContribution) > 0 && (
+										<div className='space-y-1'>
+											<p className='text-sm text-muted-foreground'>
+												Cliente Ajudou
+											</p>
+											<p className='text-lg font-semibold text-green-600'>
+												{formatCurrency(toCents(customerContribution))}
+											</p>
+										</div>
+									)}
 
 									<div className='border-t pt-4'>
 										<div className='flex justify-between items-center mb-4'>
