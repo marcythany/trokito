@@ -110,39 +110,46 @@ export default function HomePage() {
 						</div>
 
 						{/* Menu items with glassmorphism - 2025 trend */}
-						{menuItems.map((item, index) => {
-							const Icon = item.icon;
-							return (
-								<div
-									key={item.href}
-									className={`bento-item glassmorphism neumorphism hover:transform hover:scale-105 transition-all duration-300 ${
-										index === 0 ? 'col-span-1 md:col-span-2' : ''
-									}`}
-								>
-									<Button
-										variant='ghost'
-										className='w-full h-full p-6 flex flex-col items-center gap-4 text-center touch-target focus-ring mobile-tap mobile-optimized'
-										onClick={() => (window.location.href = item.href)}
-										aria-label={`${item.title}: ${item.description}`}
-									>
-										<div className='neumorphism rounded-xl p-4'>
-											<Icon
-												className='h-10 w-10 text-primary'
-												aria-hidden='true'
-											/>
+						<div className='bento-item col-span-1 md:col-span-2 lg:col-span-3'>
+							<h2 className='text-2xl font-semibold text-foreground mb-6 text-center'>
+								Recursos Disponíveis
+							</h2>
+							<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+								{menuItems.map((item, index) => {
+									const Icon = item.icon;
+									return (
+										<div
+											key={item.href}
+											className={`glassmorphism neumorphism hover:transform hover:scale-105 transition-all duration-300 ${
+												index === 0 ? 'md:col-span-2' : ''
+											}`}
+										>
+											<Button
+												variant='ghost'
+												className='w-full h-full p-6 flex flex-col items-center gap-4 text-center touch-target focus-ring mobile-tap mobile-optimized'
+												onClick={() => (window.location.href = item.href)}
+												aria-label={`${item.title}: ${item.description}`}
+											>
+												<div className='neumorphism rounded-xl p-4'>
+													<Icon
+														className='h-10 w-10 text-primary'
+														aria-hidden='true'
+													/>
+												</div>
+												<div className='flex-1'>
+													<h3 className='text-xl font-semibold text-foreground mb-2'>
+														{item.title}
+													</h3>
+													<p className='text-muted-foreground text-sm leading-relaxed'>
+														{item.description}
+													</p>
+												</div>
+											</Button>
 										</div>
-										<div className='flex-1'>
-											<h3 className='text-xl font-semibold text-foreground mb-2'>
-												{item.title}
-											</h3>
-											<p className='text-muted-foreground text-sm leading-relaxed'>
-												{item.description}
-											</p>
-										</div>
-									</Button>
-								</div>
-							);
-						})}
+									);
+								})}
+							</div>
+						</div>
 
 						{/* Footer info card */}
 						<div className='bento-item glassmorphism neumorphism col-span-1 md:col-span-2 lg:col-span-3'>

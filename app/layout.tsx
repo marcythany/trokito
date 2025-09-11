@@ -1,4 +1,5 @@
 import ErrorBoundary from '@/components/error-boundary';
+import { ReactErrorDebug } from '@/components/react-error-debug';
 import type { Metadata } from 'next';
 import { Inter, Roboto } from 'next/font/google';
 import type React from 'react';
@@ -60,7 +61,7 @@ export default function RootLayout({
 				<meta name='theme-color' content='#0B4D36' />
 				<meta name='background-color' content='#0B4D36' />
 				<link rel='icon' href='/favicon.ico' />
-				<link rel='apple-touch-icon' href='/icon-192x192.png' />
+				<link rel='apple-touch-icon' href='/next.svg' />
 				<style>{`
           html {
             font-family: ${roboto.style.fontFamily};
@@ -74,6 +75,7 @@ export default function RootLayout({
 					Pular para o conteúdo principal
 				</a>
 				<ErrorBoundary>{children}</ErrorBoundary>
+				<ReactErrorDebug />
 			</body>
 		</html>
 	);
