@@ -85,7 +85,7 @@ export default function HomePage() {
 					<div className='absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000' />
 				</div>
 
-				<div className='relative z-10 w-full max-w-6xl'>
+				<div id='main-content' className='relative z-10 w-full max-w-6xl'>
 					{/* Bento grid layout - 2025 trend */}
 					<div className='bento-grid gap-6'>
 						{/* Header section */}

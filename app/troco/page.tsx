@@ -223,7 +223,7 @@ export default function ChangeCalculator() {
 					<div className='absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-pulse delay-1000' />
 				</div>
 
-				<div className='relative z-10 w-full max-w-6xl'>
+				<div id='main-content' className='relative z-10 w-full max-w-6xl'>
 					{/* Bento grid layout - 2025 trend */}
 					<div className='bento-grid gap-6'>
 						{/* Header section */}
@@ -389,7 +389,12 @@ export default function ChangeCalculator() {
 														checked={showExactChange}
 														onCheckedChange={setShowExactChange}
 														aria-label='Alternar entre troco exato e sugerido'
+														aria-describedby='switch-description'
 													/>
+													<div id='switch-description' className='sr-only'>
+														Ative para mostrar o troco exato, desative para
+														mostrar o troco sugerido arredondado
+													</div>
 													<span className='text-sm text-muted-foreground'>
 														Sugerido
 													</span>

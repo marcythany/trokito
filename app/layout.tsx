@@ -66,7 +66,12 @@ export default function RootLayout({
           }
         `}</style>
 			</head>
-			<body className='font-sans antialiased'>{children}</body>
+			<body className='font-sans antialiased'>
+				<a href='#main-content' className='skip-link'>
+					Pular para o conteúdo principal
+				</a>
+				{children}
+			</body>
 		</html>
 	);
 }
